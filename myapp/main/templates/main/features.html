@@ -1,0 +1,145 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to your custom CSS file -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="antialiased">
+
+    <!-- Navigation Bar (Identical to Home Page for consistency) -->
+    <nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24 rounded-b-xl">
+        <div class="container mx-auto flex justify-between items-center">
+            <!-- Logo/Site Title -->
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-700 hover:text-indigo-900 transition duration-300 ease-in-out">
+                HAUspital
+            </a>
+
+            <!-- Navigation Links - UPDATED to link to features -->
+            <div class="hidden md:flex space-x-8">
+                <a href="{% url 'home' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">Home</a>
+                <a href="{% url 'features' %}" class="text-indigo-700 hover:text-indigo-900 font-bold transition duration-300 ease-in-out">Features</a>
+                <a href="{% url 'about' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">About Us</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">Contact</a>
+            </div>
+
+            <!-- Mobile Menu Button (Hamburger Icon) -->
+            <button class="md:hidden text-gray-600 hover:text-indigo-700 focus:outline-none" aria-label="Toggle Menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+        <!-- Mobile Menu (Hidden by default, can be toggled with JavaScript if needed) -->
+        <div class="md:hidden mt-4 space-y-2 px-4 py-2 bg-gray-50 rounded-lg shadow-sm hidden">
+            <a href="{% url 'home' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Home</a>
+            <a href="{% url 'features' %}" class="block text-indigo-700 hover:bg-gray-100 px-3 py-2 rounded-md">Features</a>
+            <a href="#" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">About</a>
+            <a href="#" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Contact</a>
+        </div>
+    </nav>
+
+    <!-- Page Header for Features -->
+    <header class="bg-indigo-600 text-white py-16 md:py-24 rounded-bl-3xl rounded-br-3xl shadow-xl mb-12">
+        <div class="container mx-auto text-center px-4">
+            <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-4">
+                What Our Website Can Do
+            </h1>
+            <p class="text-lg md:text-xl max-w-2xl mx-auto opacity-90">
+                Discover the powerful capabilities and innovative solutions we offer to streamline your work and enhance your life.
+            </p>
+        </div>
+    </header>
+
+    <!-- Features Content Section -->
+    <section class="container mx-auto py-12 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            <!-- Feature Card 1: Intuitive Dashboards -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out border-t-4 border-blue-500">
+                <div class="flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">Intuitive Dashboards</h3>
+                <p class="text-gray-600">Gain real-time insights with customizable and easy-to-understand dashboards. Track progress, monitor key metrics, and make informed decisions effortlessly.</p>
+            </div>
+
+            <!-- Feature Card 2: Advanced Analytics -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out border-t-4 border-green-500">
+                <div class="flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3m0 0l3 3m-3-3v6m-4-2h8m4 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">Advanced Analytics</h3>
+                <p class="text-gray-600">Dive deep into your data with our powerful analytics tools. Identify trends, predict outcomes, and optimize your strategies for maximum impact.</p>
+            </div>
+
+            <!-- Feature Card 3: Seamless Integration -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out border-t-4 border-purple-500">
+                <div class="flex items-center justify-center w-16 h-16 bg-purple-100 text-purple-600 rounded-full mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">Seamless Integration</h3>
+                <p class="text-gray-600">Connect with your favorite tools and platforms effortlessly. Our robust APIs and integrations ensure a smooth workflow and data synchronization.</p>
+            </div>
+
+            <!-- Feature Card 4: Collaborative Workspaces -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out border-t-4 border-red-500">
+                <div class="flex items-center justify-center w-16 h-16 bg-red-100 text-red-600 rounded-full mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H2v-2a3 3 0 015.356-1.857M17 20v-9a2 2 0 00-2-2h-2a2 2 0 00-2 2v9m4-11h.01M7 13h.01M17 16h.01"></path></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">Collaborative Workspaces</h3>
+                <p class="text-gray-600">Work together with your team in shared environments. Real-time collaboration features make project management and content creation a breeze.</p>
+            </div>
+
+            <!-- Feature Card 5: Secure and Reliable -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out border-t-4 border-yellow-500">
+                <div class="flex items-center justify-center w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm0-11V9a2 2 0 012-2h4a2 2 0 012 2v2M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-4 10a4 4 0 100-8 4 4 0 000 8z"></path></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">Secure and Reliable</h3>
+                <p class="text-gray-600">Your data is safe with us. We employ industry-leading security measures and ensure high availability for all our services.</p>
+            </div>
+
+            <!-- Feature Card 6: Scalable Solutions -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out border-t-4 border-indigo-500">
+                <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">Scalable Solutions</h3>
+                <p class="text-gray-600">Grow without limits. Our architecture is designed to scale with your needs, ensuring performance whether you have 10 users or 10 million.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Call to Action Section (Identical to Home Page) -->
+    <section class="bg-indigo-700 text-white py-16 mt-12 rounded-t-3xl rounded-b-3xl shadow-lg">
+        <div class="container mx-auto text-center px-4">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Experience the Difference?</h2>
+            <p class="text-lg md:text-xl mb-8 max-w-xl mx-auto opacity-90">
+                Explore our features further or get started with a free trial today.
+            </p>
+            <a href="#" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Get Started Now
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer (Identical to Home Page for consistency) -->
+    <footer class="bg-gray-800 text-gray-300 py-8 mt-12 rounded-t-xl">
+        <div class="container mx-auto text-center px-4">
+            <p>&copy; 2025 YourSite. All rights reserved.</p>
+            <div class="flex justify-center space-x-6 mt-4">
+                <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+                <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

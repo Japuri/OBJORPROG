@@ -1,0 +1,122 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAUspital</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to your custom CSS file -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="antialiased">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24 rounded-b-xl">
+        <div class="container mx-auto flex justify-between items-center">
+            <!-- Logo/Site Title -->
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-700 hover:text-indigo-900 transition duration-300 ease-in-out">
+                HAUspital
+            </a>
+
+            <!-- Navigation Links -->
+            <div class="hidden md:flex space-x-8">
+                <a href="{% url 'home' %}" class="text-indigo-700 hover:text-indigo-900 font-bold transition duration-300 ease-in-out">Home</a>
+                <a href="{% url 'features' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">Features</a>
+                <a href="{% url 'about' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">About Us</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">Contact</a>
+            </div>
+
+            <!-- Mobile Menu Button (Hamburger Icon) -->
+            <button class="md:hidden text-gray-600 hover:text-indigo-700 focus:outline-none" aria-label="Toggle Menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+        <!-- Mobile Menu (Hidden by default, can be toggled with JavaScript if needed) -->
+        <div class="md:hidden mt-4 space-y-2 px-4 py-2 bg-gray-50 rounded-lg shadow-sm hidden">
+            <a href="{% url 'home' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Home</a>
+            <a href="{% url 'features' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Features</a>
+            <a href="#" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">About</a>
+            <a href="#" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Contact</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative text-white py-20 md:py-32 rounded-bl-3xl rounded-br-3xl shadow-xl mb-12 overflow-hidden"
+            style="background-image: url('{% static 'images/bg2.jpg' %}'); background-size: cover; background-position: center;">
+        <div class="absolute inset-0 bg-black opacity-20 backdrop-blur-sm"></div>
+        <div class="container mx-auto text-center px-4 relative z-10">
+            <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
+                Welcome to HAUspital
+            </h1>
+            <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">
+                Your trusted partner in health, providing compassionate care and advanced medical services.
+            </p>
+            <a href="#" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Book an Appointment
+            </a>
+        </div>
+    </header>
+
+    <!-- Why Choose Us Section - Renamed and content adjusted for HAUspital context -->
+    <section class="container mx-auto py-12 px-4">
+        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-10">Why Choose HAUspital?</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Feature 1: Expert Medical Staff -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full mb-6 mx-auto">
+                    <!-- Icon placeholder: Medical Cross -->
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Expert Medical Staff</h3>
+                <p class="text-gray-600 text-center">Our team of highly qualified doctors, nurses, and specialists are dedicated to your well-being.</p>
+            </div>
+            <!-- Feature 2: State-of-the-Art Facilities -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                <div class="flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-6 mx-auto">
+                    <!-- Icon placeholder: Hospital Building -->
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10V6a2 2 0 012-2h2m3 2H9m3 0a2 2 0 00-2-2h-2m2 2V4m0 0V3m0 3H9m3 0H6a2 2 0 00-2 2v2m8-4h4a2 2 0 012 2v6a2 2 0 01-2 2h-4M4 14v4a2 2 0 002 2h2m0-4v-4m0 4h-2m0 0a2 2 0 01-2-2v-4a2 2 0 012-2h4a2 2 0 012 2v4a2 2 0 01-2 2h-2m-4 0v4a2 2 0 002 2h2m0-4v-4m0 4h-2m-2-4v4m0 0h-2"></path></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">State-of-the-Art Facilities</h3>
+                <p class="text-gray-600 text-center">Equipped with modern technology to provide accurate diagnostics and effective treatments.</p>
+            </div>
+            <!-- Feature 3: Patient-Centered Care -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                <div class="flex items-center justify-center w-16 h-16 bg-purple-100 text-purple-600 rounded-full mb-6 mx-auto">
+                    <!-- Icon placeholder: Heart with Hand -->
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0zM12 6.5l.3-.3a2.5 2.5 0 013.535 3.535l-3.535 3.536L8.465 9.735A2.5 2.5 0 0112 6.5z"></path></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Patient-Centered Care</h3>
+                <p class="text-gray-600 text-center">We prioritize your comfort and recovery, offering personalized care tailored to your needs.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="bg-indigo-700 text-white py-16 mt-12 rounded-t-3xl rounded-b-3xl shadow-lg">
+        <div class="container mx-auto text-center px-4">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Experience Quality Healthcare?</h2>
+            <p class="text-lg md:text-xl mb-8 max-w-xl mx-auto opacity-90">
+                Schedule your visit or learn more about our services today.
+            </p>
+            <a href="#" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Contact Us
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 py-8 mt-12 rounded-t-xl">
+        <div class="container mx-auto text-center px-4">
+            <p>&copy; 2025 HAUspital. All rights reserved.</p>
+            <div class="flex justify-center space-x-6 mt-4">
+                <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+                <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
