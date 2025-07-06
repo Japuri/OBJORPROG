@@ -1,0 +1,136 @@
+{% load static crispy_forms_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.username }}'s Dashboard - HAUspital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        /* Optional: Custom styles if needed, but Tailwind should handle most */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f3f4f6; /* Light gray background for the page */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navigation Bar (similar to other pages, but with Logout) -->
+    <nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24 rounded-b-xl">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-700 hover:text-indigo-900 transition duration-300 ease-in-out">
+                HAUspital
+            </a>
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="{% url 'home' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">Home</a>
+                <a href="{% url 'features' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">Features</a>
+                <a href="{% url 'about' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">About</a>
+                <a href="{% url 'profile_dashboard' %}" class="text-indigo-700 hover:text-indigo-900 font-bold transition duration-300 ease-in-out">Profile</a>
+                <form action="{% url 'logout' %}" method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 transition duration-300 ease-in-out shadow-md">
+                        Logout
+                    </button>
+                </form>
+            </div>
+            <button class="md:hidden text-gray-600 hover:text-indigo-700 focus:outline-none" aria-label="Toggle Menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div class="md:hidden mt-4 space-y-2 px-4 py-2 bg-gray-50 rounded-lg shadow-sm hidden">
+            <a href="{% url 'home' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Home</a>
+            <a href="{% url 'features' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Features</a>
+            <a href="{% url 'about' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">About</a>
+            <a href="{% url 'profile_dashboard' %}" class="block text-indigo-700 hover:bg-gray-100 px-3 py-2 rounded-md">Profile</a>
+            <form action="{% url 'logout' %}" method="post" class="block">
+                {% csrf_token %}
+                <button type="submit" class="w-full text-left bg-red-500 text-white py-2 px-3 rounded-md font-semibold hover:bg-red-600 transition duration-300 ease-in-out">
+                    Logout
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="container mx-auto py-12 px-4">
+        <!-- Messages Display -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="p-4 rounded-lg text-sm mb-2 shadow-sm
+                        {% if message.tags == 'success' %}bg-green-100 text-green-800 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-800 border border-red-200{% elif message.tags == 'info' %}bg-blue-100 text-blue-800 border border-blue-200{% else %}bg-gray-100 text-gray-800 border border-gray-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Profile Information Card (Left/Top Section) -->
+            <div class="lg:col-span-1 bg-white p-8 rounded-2xl shadow-xl border-t-4 border-indigo-600 h-fit">
+                <div class="flex flex-col items-center mb-6">
+                    <div class="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-5xl font-bold mb-4 border-2 border-indigo-300">
+                        {{ user.username.0|upper }}
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ user.username }}</h2>
+                    <p class="text-gray-600 text-lg">{{ user.email }}</p>
+                </div>
+
+                <hr class="border-gray-200 my-6">
+
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Biography Details</h3>
+                <div class="space-y-3 text-gray-700">
+                    <p><span class="font-medium text-gray-900">Full Name:</span> {{ profile.full_name|default:"Not provided" }}</p>
+                    <p><span class="font-medium text-gray-900">Date of Birth:</span> {{ profile.date_of_birth|default:"Not provided" }}</p>
+                    <p><span class="font-medium text-gray-900">Address:</span> {{ profile.address|default:"Not provided" }}</p>
+                    <p><span class="font-medium text-gray-900">Phone Number:</span> {{ profile.phone_number|default:"Not provided" }}</p>
+                    <div>
+                        <span class="font-medium text-gray-900 block mb-1">About Me:</span>
+                        <p class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm italic">{{ profile.bio|default:"No biography provided yet." }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Update Form Card (Right/Bottom Section) -->
+            <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-xl border-t-4 border-purple-600">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center lg:text-left">Update Your Profile Information</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="w-full md:w-auto mt-6 bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 ease-in-out shadow-md transform hover:scale-105">
+                        Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer (Identical to other pages) -->
+    <footer class="bg-gray-800 text-gray-300 py-8 mt-12 rounded-t-xl">
+        <div class="container mx-auto text-center px-4">
+            <p>&copy; 2025 HAUspital. All rights reserved.</p>
+            <div class="flex justify-center space-x-6 mt-4">
+                <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
+                <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Basic mobile menu toggle
+        const mobileMenuButton = document.querySelector('nav button.md\\:hidden');
+        const mobileMenu = document.querySelector('nav div.md\\:hidden.mt-4');
+
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+    </script>
+</body>
+</html>
