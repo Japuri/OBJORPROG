@@ -9,6 +9,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Link to your custom CSS file -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        /* Custom styles for modal animation */
+        .modal-enter-active, .modal-leave-active {
+            transition: opacity 0.3s ease;
+        }
+        .modal-enter-from, .modal-leave-to {
+            opacity: 0;
+        }
+        .modal-content-enter-active, .modal-content-leave-active {
+            transition: transform 0.3s ease;
+        }
+        .modal-content-enter-from, .modal-content-leave-to {
+            transform: translateY(-20px);
+        }
+    </style>
 </head>
 <body class="antialiased">
 
@@ -25,7 +40,7 @@
                 <a href="{% url 'home' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">Home</a>
                 <a href="{% url 'features' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">Features</a>
                 <a href="{% url 'about' %}" class="text-indigo-700 hover:text-indigo-900 font-bold transition duration-300 ease-in-out">About</a>
-                <a href="#" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">Contact</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out" id="contactUsBtnAbout">Contact</a>
             </div>
 
             <!-- Mobile Menu Button (Hamburger Icon) -->
@@ -40,7 +55,7 @@
             <a href="{% url 'home' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Home</a>
             <a href="{% url 'features' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Features</a>
             <a href="{% url 'about' %}" class="block text-indigo-700 hover:bg-gray-100 px-3 py-2 rounded-md">About</a>
-            <a href="#" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Contact</a>
+            <a href="#" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md" id="contactUsMobileBtnAbout">Contact</a>
         </div>
     </nav>
 
@@ -103,27 +118,27 @@
             <div>
                 <h3 class="text-2xl font-semibold text-indigo-700 mb-3">Our Mission</h3>
                 <p class="text-gray-700 leading-relaxed">
-                   Our mission is to streamline hospital processes by developing secure, user-friendly digital solutions that empower medical professionals, reduce administrative burden, and improve patient experiences from admission to discharge.
+                    To deliver compassionate, comprehensive, and patient-centered healthcare services that promote wellness, alleviate suffering, and restore health to the community we serve.
                 </p>
             </div>
             <div>
                 <h3 class="text-2xl font-semibold text-indigo-700 mb-3">Our Vision</h3>
                 <p class="text-gray-700 leading-relaxed">
-                    To revolutionize healthcare by creating a fully digital hospital environment where efficiency, accuracy, and patient care are elevated through innovative technology.
+                    To be the leading healthcare provider, recognized for excellence in medical care, innovative practices, and an unwavering commitment to the health and well-being of every individual.
                 </p>
             </div>
         </div>
     </section>
 
-    <!-- Call to Action Section (Identical to Home Page for consistency) -->
+    <!-- Call to Action Section -->
     <section class="bg-indigo-700 text-white py-16 mt-12 rounded-t-3xl rounded-b-3xl shadow-lg">
         <div class="container mx-auto text-center px-4">
             <h2 class="text-3xl md:text-4xl font-bold mb-6">Join the HAUspital Family</h2>
             <p class="text-lg md:text-xl mb-8 max-w-xl mx-auto opacity-90">
                 We're always looking for dedicated individuals to enhance our team and services.
             </p>
-            <a href="#" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
-                Join now
+            <a href="#" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105" id="joinNowBtnAbout">
+                Join Now
             </a>
         </div>
     </section>
@@ -139,5 +154,205 @@
         </div>
     </footer>
 
+    <!-- Signup/Login Modal (Identical to index.html and features.html) -->
+    <div id="authModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden modal-enter-from">
+        <div id="modalContent" class="bg-white p-8 rounded-2xl shadow-2xl w-11/12 max-w-md relative modal-content-enter-from">
+            <!-- Close Button -->
+            <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold focus:outline-none">
+                &times;
+            </button>
+
+            <h2 id="modalTitle" class="text-3xl font-bold text-center text-gray-800 mb-8">Sign Up</h2>
+
+            <!-- Signup Form -->
+            <form id="signupForm" class="space-y-6">
+                <div>
+                    <label for="signupEmail" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="signupEmail" name="email" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-200">
+                </div>
+                <div>
+                    <label for="signupPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signupPassword" name="password" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-200">
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-200">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 ease-in-out shadow-md transform hover:scale-105">
+                    Sign Up
+                </button>
+            </form>
+
+            <!-- Login Form (hidden by default) -->
+            <form id="loginForm" class="space-y-6 hidden">
+                <div>
+                    <label for="loginEmail" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="loginEmail" name="email" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-200">
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="loginPassword" name="password" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-200">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 ease-in-out shadow-md transform hover:scale-105">
+                    Log In
+                </button>
+                <p class="text-center text-sm text-gray-600">
+                    <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">Forgot Password?</a>
+                </p>
+            </form>
+
+            <!-- Toggle Link -->
+            <p class="text-center text-gray-600 mt-6">
+                <span id="toggleText">Already have an account?</span>
+                <button id="toggleAuthMode" class="text-indigo-600 hover:text-indigo-800 font-medium ml-1 focus:outline-none">
+                    Log In
+                </button>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Get elements
+        const authModal = document.getElementById('authModal');
+        const modalContent = document.getElementById('modalContent');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        // Buttons that open the modal on this page
+        const joinNowBtnAbout = document.getElementById('joinNowBtnAbout'); // The new button ID for "Join Now"
+        const contactUsBtnAbout = document.getElementById('contactUsBtnAbout'); // Navbar contact on about page
+        const contactUsMobileBtnAbout = document.getElementById('contactUsMobileBtnAbout'); // Mobile navbar contact on about page
+
+        const signupForm = document.getElementById('signupForm');
+        const loginForm = document.getElementById('loginForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const toggleAuthMode = document.getElementById('toggleAuthMode');
+        const toggleText = document.getElementById('toggleText');
+
+        let isSignupMode = true; // Track current mode
+
+        // Function to show modal
+        function showModal(mode = 'signup') {
+            authModal.classList.remove('hidden');
+            setTimeout(() => {
+                authModal.classList.remove('modal-enter-from');
+                if (modalContent) {
+                    modalContent.classList.remove('modal-content-enter-from');
+                }
+            }, 10);
+
+            if (mode === 'signup') {
+                signupForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                modalTitle.textContent = 'Sign Up';
+                toggleText.textContent = 'Already have an account?';
+                toggleAuthMode.textContent = 'Log In';
+                isSignupMode = true;
+            } else {
+                signupForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                modalTitle.textContent = 'Log In';
+                toggleText.textContent = 'Don\'t have an account?';
+                toggleAuthMode.textContent = 'Sign Up';
+                isSignupMode = false;
+            }
+        }
+
+        // Function to hide modal
+        function hideModal() {
+            authModal.classList.add('modal-leave-to');
+            if (modalContent) {
+                modalContent.classList.add('modal-content-leave-to');
+            }
+            setTimeout(() => {
+                authModal.classList.add('hidden');
+                authModal.classList.remove('modal-leave-to');
+                if (modalContent) {
+                    modalContent.classList.remove('modal-content-leave-to');
+                    modalContent.classList.add('modal-content-enter-from');
+                }
+            }, 300);
+        }
+
+        // Event Listeners for opening modal
+        if (joinNowBtnAbout) {
+            joinNowBtnAbout.addEventListener('click', (e) => {
+                e.preventDefault();
+                showModal('signup'); // Default to signup for "Join Now"
+            });
+        }
+
+        if (contactUsBtnAbout) {
+            contactUsBtnAbout.addEventListener('click', (e) => {
+                e.preventDefault();
+                showModal('login'); // Default to login for contact
+            });
+        }
+
+        if (contactUsMobileBtnAbout) {
+            contactUsMobileBtnAbout.addEventListener('click', (e) => {
+                e.preventDefault();
+                showModal('login'); // Default to login for contact
+            });
+        }
+
+        // Event Listener for closing modal
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', hideModal);
+        }
+        if (authModal) {
+            authModal.addEventListener('click', (e) => {
+                if (e.target === authModal) {
+                    hideModal();
+                }
+            });
+        }
+
+        // Toggle between Signup and Login forms
+        if (toggleAuthMode) {
+            toggleAuthMode.addEventListener('click', () => {
+                if (isSignupMode) {
+                    showModal('login');
+                } else {
+                    showModal('signup');
+                }
+            });
+        }
+
+        // Handle form submissions (for demonstration only)
+        if (signupForm) {
+            signupForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('Signup Form Submitted from About Page!');
+                console.log('Email:', document.getElementById('signupEmail').value);
+                console.log('Password:', document.getElementById('signupPassword').value);
+                hideModal();
+            });
+        }
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('Login Form Submitted from About Page!');
+                console.log('Email:', document.getElementById('loginEmail').value);
+                console.log('Password:', document.getElementById('loginPassword').value);
+                hideModal();
+            });
+        }
+
+        // Basic mobile menu toggle
+        const mobileMenuButton = document.querySelector('nav button.md\\:hidden');
+        const mobileMenu = document.querySelector('nav div.md\\:hidden.mt-4');
+
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+    </script>
 </body>
 </html>
