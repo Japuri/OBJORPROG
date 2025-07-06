@@ -4,331 +4,271 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HAUspital</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Link to your custom CSS file -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <style>
-        /* Custom styles for modal animation */
-        .modal-enter-active, .modal-leave-active {
-            transition: opacity 0.3s ease;
-        }
-        .modal-enter-from, .modal-leave-to {
-            opacity: 0;
-        }
-        .modal-content-enter-active, .modal-content-leave-active {
-            transition: transform 0.3s ease;
-        }
-        .modal-content-enter-from, .modal-content-leave-to {
-            transform: translateY(-20px);
-        }
-    </style>
-</head>
-<body class="antialiased">
 
-    <!-- Navigation Bar -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhfR+UXS7IVjUGVsAA+x9saKkHQ+3yL1okNs="
+        crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+   <style>
+    /* Main container for the two-column layout */
+    .map-layout-container {
+        display: flex;
+        flex-direction: column; /* Mobile-first: stack columns */
+        height: 600px;
+        border-radius: 1rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        background: #fff;
+
+        /* FIX: Establish a positioning context to control child elements */
+        position: relative;
+        overflow: hidden; /* This is also very important */
+    }
+    /* On large screens, switch to side-by-side columns */
+    @media (min-width: 1024px) {
+        .map-layout-container {
+            flex-direction: row;
+        }
+    }
+
+    /* Sidebar for the list of hospitals */
+    #results-list-container {
+        flex-basis: 33.333333%; /* 1/3 width on desktop */
+        height: 250px;
+        overflow-y: auto;
+        border-bottom: 1px solid #e5e7eb;
+
+        /* FIX: Ensure sidebar is on a higher "layer" than the map */
+        z-index: 10;
+        background-color: #ffffff; /* Explicit background to prevent transparency issues */
+    }
+    @media (min-width: 1024px) {
+        #results-list-container {
+            height: 100%;
+            border-right: 1px solid #e5e7eb;
+            border-bottom: none;
+        }
+    }
+
+    /* Container for the map itself */
+    #map-container {
+        flex-basis: 66.666667%; /* 2/3 width on desktop */
+        height: 350px;
+
+        /* FIX: Give map a lower "layer" and contain it */
+        position: relative;
+        z-index: 5;
+    }
+    @media (min-width: 1024px) {
+        #map-container {
+            height: 100%;
+        }
+    }
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Styling for individual items in the results list */
+    .result-item {
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+    }
+    .result-item:hover, .result-item.highlighted {
+        background-color: #f3f4f6;
+    }
+    .result-item-name {
+        font-weight: 600;
+        color: #111827;
+    }
+    .result-item-address {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+</style>
+</head>
+<body class="antialiased" data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
+    <input type="hidden" name="csrfmiddlewaretoken" id="csrf_token_input" value="{{ csrf_token }}">
+
     <nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24 rounded-b-xl">
         <div class="container mx-auto flex justify-between items-center">
-            <!-- Logo/Site Title -->
-            <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-700 hover:text-indigo-900 transition duration-300 ease-in-out">
-                HAUspital
-            </a>
-
-            <!-- Navigation Links -->
-            <div class="hidden md:flex space-x-8">
-                <a href="{% url 'home' %}" class="text-indigo-700 hover:text-indigo-900 font-bold transition duration-300 ease-in-out">Home</a>
-                <a href="{% url 'features' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">Features</a>
-                <a href="{% url 'about' %}" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out">About</a>
-                <a href="#" class="text-gray-600 hover:text-indigo-700 font-medium transition duration-300 ease-in-out" id="contactUsBtn">Contact</a>
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-700 hover:text-indigo-900">HAUspital</a>
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="{% url 'home' %}" class="text-indigo-700 hover:text-indigo-900 font-bold">Home</a>
+                <a href="{% url 'features' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Features</a>
+                <a href="{% url 'about' %}" class="text-gray-600 hover:text-indigo-700 font-medium">About</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profile_dashboard' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Profile</a>
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 shadow-md">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Login</a>
+                    <a href="{% url 'register' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700 shadow-md">Sign Up</a>
+                {% endif %}
             </div>
-
-            <!-- Mobile Menu Button (Hamburger Icon) -->
-            <button class="md:hidden text-gray-600 hover:text-indigo-700 focus:outline-none" aria-label="Toggle Menu">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
+            <button class="md:hidden text-gray-600 hover:text-indigo-700" id="mobileMenuButton">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
         </div>
-        <!-- Mobile Menu (Hidden by default, can be toggled with JavaScript if needed) -->
-        <div class="md:hidden mt-4 space-y-2 px-4 py-2 bg-gray-50 rounded-lg shadow-sm hidden">
-            <a href="{% url 'home' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Home</a>
-            <a href="{% url 'features' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Features</a>
-            <a href="{% url 'about' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">About</a>
-            <a href="#" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md" id="contactUsMobileBtn">Contact</a>
-        </div>
+        <div class="md:hidden mt-4 space-y-2 px-4 py-2 bg-gray-50 rounded-lg shadow-sm hidden" id="mobileMenu"></div>
     </nav>
 
-    <!-- Hero Section -->
-    <header class="relative text-white py-20 md:py-32 rounded-bl-3xl rounded-br-3xl shadow-xl mb-12 overflow-hidden"
-            style="background-image: url('{% static 'images/bg2.jpg' %}'); background-size: cover; background-position: center;">
+    <header class="relative text-white py-20 md:py-32 rounded-bl-3xl rounded-br-3xl shadow-xl mb-12 overflow-hidden" style="background-image: url('{% static 'images/bg2.jpg' %}'); background-size: cover; background-position: center;">
         <div class="absolute inset-0 bg-black opacity-20 backdrop-blur-sm"></div>
         <div class="container mx-auto text-center px-4 relative z-10">
-            <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
-                Welcome to HAUspital
-            </h1>
-            <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">
-                Your trusted partner in health, providing compassionate care and advanced medical services.
-            </p>
-            <a href="#" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105" id="bookAppointmentBtn">
-                Book an Appointment
-            </a>
+            {% if user.is_authenticated %}
+                <h1 class="text-4xl md:text-6xl font-extrabold mb-6">Welcome back, {{ user.username }}!</h1>
+                <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">Find the closest HAUspital partner near you.</p>
+                <a href="{% url 'profile_dashboard' %}" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg">Go to Dashboard</a>
+            {% else %}
+                <h1 class="text-4xl md:text-6xl font-extrabold mb-6">Welcome to HAUspital</h1>
+                <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">Your trusted partner in health.</p>
+                <a href="{% url 'register' %}" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg">Book an Appointment</a>
+            {% endif %}
         </div>
     </header>
 
-    <!-- Why Choose Us Section - Renamed and content adjusted for HAUspital context -->
-    <section class="container mx-auto py-12 px-4">
-        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-10">Why Choose HAUspital?</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Feature 1: Expert Medical Staff -->
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-                <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full mb-6 mx-auto">
-                    <!-- Icon placeholder: Medical Cross -->
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Expert Medical Staff</h3>
-                <p class="text-gray-600 text-center">Our team of highly qualified doctors, nurses, and specialists are dedicated to your well-being.</p>
-            </div>
-            <!-- Feature 2: State-of-the-Art Facilities -->
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-                <div class="flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-6 mx-auto">
-                    <!-- Icon placeholder: Hospital Building -->
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10V6a2 2 0 012-2h2m3 2H9m3 0a2 2 0 00-2-2h-2m2 2V4m0 0V3m0 3H9m3 0H6a2 2 0 00-2 2v2m8-4h4a2 2 0 012 2v6a2 2 0 01-2 2h-4M4 14v4a2 2 0 002 2h2m0-4v-4m0 4h-2m0 0a2 2 0 01-2-2v-4a2 2 0 012-2h4a2 2 0 012 2v4a2 2 0 01-2 2h-2m-4 0v4a2 2 0 002 2h2m0-4v-4m0 4h-2m-2-4v4m0 0h-2"></path></svg>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">State-of-the-Art Facilities</h3>
-                <p class="text-gray-600 text-center">Equipped with modern technology to provide accurate diagnostics and effective treatments.</p>
-            </div>
-            <!-- Feature 3: Patient-Centered Care -->
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-                <div class="flex items-center justify-center w-16 h-16 bg-purple-100 text-purple-600 rounded-full mb-6 mx-auto">
-                    <!-- Icon placeholder: Heart with Hand -->
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0zM12 6.5l.3-.3a2.5 2.5 0 013.535 3.535l-3.535 3.536L8.465 9.735A2.5 2.5 0 0112 6.5z"></path></svg>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Patient-Centered Care</h3>
-                <p class="text-gray-600 text-center">We prioritize your comfort and recovery, offering personalized care tailored to your needs.</p>
-            </div>
-        </div>
-    </section>
+    <div class="container mx-auto py-12 px-4">
+        {% if user.is_authenticated %}
+            <section class="mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8">Hospitals Near You</h2>
 
-    <!-- Call to Action Section -->
-    <section class="bg-indigo-700 text-white py-16 mt-12 rounded-t-3xl rounded-b-3xl shadow-lg">
-        <div class="container mx-auto text-center px-4">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Experience Quality Healthcare?</h2>
-            <p class="text-lg md:text-xl mb-8 max-w-xl mx-auto opacity-90">
-                Schedule your visit or learn more about our services today.
-            </p>
-            <a href="#" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105" id="contactUsBtnBottom">
-                Contact Us
-            </a>
-        </div>
-    </section>
+                <div class="map-layout-container">
+                    <div id="results-list-container">
+                        <div id="results-list">
+                            <div class="p-4 text-center text-gray-500">Searching for hospitals...</div>
+                        </div>
+                    </div>
+                    <div id="map-container">
+                        <div id="map"></div>
+                    </div>
+                </div>
 
-    <!-- Footer -->
+                <div id="map-error" class="hidden mt-4 p-4 bg-red-100 text-red-800 rounded-lg shadow-sm"></div>
+            </section>
+        {% else %}
+            <section class="mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-10">Why Choose HAUspital?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-8 rounded-2xl shadow-lg"><h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Expert Medical Staff</h3></div>
+                    <div class="bg-white p-8 rounded-2xl shadow-lg"><h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">State-of-the-Art Facilities</h3></div>
+                    <div class="bg-white p-8 rounded-2xl shadow-lg"><h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Patient-Centered Care</h3></div>
+                </div>
+            </section>
+        {% endif %}
+    </div>
+
     <footer class="bg-gray-800 text-gray-300 py-8 mt-12 rounded-t-xl">
         <div class="container mx-auto text-center px-4">
-            <p>&copy; 2025 HAUspital. All rights reserved.</p>
-            <div class="flex justify-center space-x-6 mt-4">
-                <a href="#" class="hover:text-white transition duration-300 ease-in-out">Privacy Policy</a>
-                <a href="#" class="hover:text-white transition duration-300 ease-in-out">Terms of Service</a>
-            </div>
+            <p>© 2025 HAUspital. All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- Signup/Login Modal -->
-    <div id="authModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden modal-enter-from">
-        <div id="modalContent" class="bg-white p-8 rounded-2xl shadow-2xl w-11/12 max-w-md relative modal-content-enter-from">
-            <!-- Close Button -->
-            <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold focus:outline-none">
-                &times;
-            </button>
-
-            <h2 id="modalTitle" class="text-3xl font-bold text-center text-gray-800 mb-8">Sign Up</h2>
-
-            <!-- Signup Form -->
-            <form id="signupForm" class="space-y-6">
-                <div>
-                    <label for="signupEmail" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                    <input type="email" id="signupEmail" name="email" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-200">
-                </div>
-                <div>
-                    <label for="signupPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input type="password" id="signupPassword" name="password" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-200">
-                </div>
-                <div>
-                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-200">
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 ease-in-out shadow-md transform hover:scale-105">
-                    Sign Up
-                </button>
-            </form>
-
-            <!-- Login Form (hidden by default) -->
-            <form id="loginForm" class="space-y-6 hidden">
-                <div>
-                    <label for="loginEmail" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                    <input type="email" id="loginEmail" name="email" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-200">
-                </div>
-                <div>
-                    <label for="loginPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input type="password" id="loginPassword" name="password" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-200">
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 ease-in-out shadow-md transform hover:scale-105">
-                    Log In
-                </button>
-                <p class="text-center text-sm text-gray-600">
-                    <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">Forgot Password?</a>
-                </p>
-            </form>
-
-            <!-- Toggle Link -->
-            <p class="text-center text-gray-600 mt-6">
-                <span id="toggleText">Already have an account?</span>
-                <button id="toggleAuthMode" class="text-indigo-600 hover:text-indigo-800 font-medium ml-1 focus:outline-none">
-                    Log In
-                </button>
-            </p>
-        </div>
-    </div>
-
     <script>
-        // Get elements
-        const authModal = document.getElementById('authModal');
-        const modalContent = document.getElementById('modalContent'); // Get the modal content by its new ID
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const bookAppointmentBtn = document.getElementById('bookAppointmentBtn');
-        const contactUsBtn = document.getElementById('contactUsBtn'); // Navbar contact
-        const contactUsMobileBtn = document.getElementById('contactUsMobileBtn'); // Mobile navbar contact
-        const contactUsBtnBottom = document.getElementById('contactUsBtnBottom'); // Bottom CTA contact
-
-        const signupForm = document.getElementById('signupForm');
-        const loginForm = document.getElementById('loginForm');
-        const modalTitle = document.getElementById('modalTitle');
-        const toggleAuthMode = document.getElementById('toggleAuthMode');
-        const toggleText = document.getElementById('toggleText');
-
-        let isSignupMode = true; // Track current mode
-
-        // Function to show modal
-        function showModal(mode = 'signup') {
-            authModal.classList.remove('hidden');
-            // Add animation classes
-            setTimeout(() => {
-                authModal.classList.remove('modal-enter-from');
-                // Use modalContent directly
-                if (modalContent) { // Check if modalContent exists before trying to access its classList
-                    modalContent.classList.remove('modal-content-enter-from');
-                }
-            }, 10); // Small delay to allow 'hidden' to be removed first
-
-            if (mode === 'signup') {
-                signupForm.classList.remove('hidden');
-                loginForm.classList.add('hidden');
-                modalTitle.textContent = 'Sign Up';
-                toggleText.textContent = 'Already have an account?';
-                toggleAuthMode.textContent = 'Log In';
-                isSignupMode = true;
-            } else {
-                signupForm.classList.add('hidden');
-                loginForm.classList.remove('hidden');
-                modalTitle.textContent = 'Log In';
-                toggleText.textContent = 'Don\'t have an account?';
-                toggleAuthMode.textContent = 'Sign Up';
-                isSignupMode = false;
-            }
-        }
-
-        // Function to hide modal
-        function hideModal() {
-            // Add animation classes for exit
-            authModal.classList.add('modal-leave-to');
-            // Use modalContent directly
-            if (modalContent) { // Check if modalContent exists before trying to access its classList
-                modalContent.classList.add('modal-content-leave-to');
-            }
-            setTimeout(() => {
-                authModal.classList.add('hidden');
-                authModal.classList.remove('modal-leave-to');
-                // Ensure modalContent is reset for next entry
-                if (modalContent) { // Check if modalContent exists
-                    modalContent.classList.remove('modal-content-leave-to');
-                    modalContent.classList.add('modal-content-enter-from'); // Prepare for next entry
-                }
-            }, 300); // Match CSS transition duration
-        }
-
-        // Event Listeners for opening modal
-        bookAppointmentBtn.addEventListener('click', (e) => {
-            e.preventDefault(); // Prevent default link behavior
-            showModal('signup'); // Default to signup
-        });
-
-        contactUsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            showModal('login'); // Default to login for contact
-        });
-
-        contactUsMobileBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            showModal('login'); // Default to login for contact
-        });
-
-        contactUsBtnBottom.addEventListener('click', (e) => {
-            e.preventDefault();
-            showModal('login'); // Default to login for contact
-        });
-
-
-        // Event Listener for closing modal
-        closeModalBtn.addEventListener('click', hideModal);
-        authModal.addEventListener('click', (e) => {
-            if (e.target === authModal) { // Only close if clicking on the overlay, not the modal content
-                hideModal();
-            }
-        });
-
-        // Toggle between Signup and Login forms
-        toggleAuthMode.addEventListener('click', () => {
-            if (isSignupMode) {
-                showModal('login');
-            } else {
-                showModal('signup');
-            }
-        });
-
-        // Handle form submissions (for demonstration only)
-        signupForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            console.log('Signup Form Submitted!');
-            console.log('Email:', document.getElementById('signupEmail').value);
-            console.log('Password:', document.getElementById('signupPassword').value);
-            // In a real application, you would send this data to your Django backend
-            hideModal();
-        });
-
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            console.log('Login Form Submitted!');
-            console.log('Email:', document.getElementById('loginEmail').value);
-            console.log('Password:', document.getElementById('loginPassword').value);
-            // In a real application, you would send this data to your Django backend
-            hideModal();
-        });
-
-        // Basic mobile menu toggle (re-adding this if it was removed)
-        const mobileMenuButton = document.querySelector('nav button.md\\:hidden');
-        const mobileMenu = document.querySelector('nav div.md\\:hidden.mt-4');
-
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
         if (mobileMenuButton && mobileMenu) {
             mobileMenuButton.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
             });
         }
 
+        {% if user.is_authenticated %}
+        document.addEventListener('DOMContentLoaded', () => {
+            const geoapifyApiKey = '8a2011283bd148e489e83a87175f641d';
+
+            const mapElement = document.getElementById('map');
+            const resultsListElement = document.getElementById('results-list');
+            const mapErrorElement = document.getElementById('map-error');
+            const mapLayoutContainer = document.querySelector('.map-layout-container');
+
+            const showError = (message) => {
+                mapErrorElement.textContent = message;
+                mapErrorElement.classList.remove('hidden');
+                mapLayoutContainer.style.display = 'none';
+            };
+
+            if (!navigator.geolocation) {
+                showError("Geolocation is not supported by your browser.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+
+                    const map = L.map('map').setView([userLat, userLon], 13);
+                    L.tileLayer(`https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${geoapifyApiKey}`, {
+                        attribution: 'Powered by <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+                    }).addTo(map);
+
+                    const userIcon = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%231e90ff&icon=person&iconSize=large&apiKey=${geoapifyApiKey}`, iconSize: [38, 55], iconAnchor: [19, 53] });
+                    const hospitalIcon = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%23ff3333&icon=local_hospital&iconSize=large&apiKey=${geoapifyApiKey}`, iconSize: [38, 55], iconAnchor: [19, 53] });
+                    const hospitalIconHighlight = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%23b60000&icon=local_hospital&iconSize=xlarge&apiKey=${geoapifyApiKey}`, iconSize: [46, 66], iconAnchor: [23, 64] });
+
+                    L.marker([userLat, userLon], { icon: userIcon }).addTo(map).bindTooltip("Your Location");
+
+                    const placesApiUrl = `https://api.geoapify.com/v2/places?categories=healthcare.hospital&filter=circle:${userLon},${userLat},5000&bias=proximity:${userLon},${userLat}&limit=20&apiKey=${geoapifyApiKey}`;
+
+                    fetch(placesApiUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            resultsListElement.innerHTML = ''; // Clear "Searching..."
+
+                            if (data.features.length === 0) {
+                                resultsListElement.innerHTML = '<div class="p-4 text-center text-gray-500">No hospitals found within 5km.</div>';
+                                return;
+                            }
+
+                            data.features.forEach(place => {
+                                const placeProps = place.properties;
+                                const marker = L.marker([placeProps.lat, placeProps.lon], { icon: hospitalIcon }).addTo(map);
+
+                                const listItem = document.createElement('div');
+                                listItem.className = 'result-item';
+                                listItem.innerHTML = `<div class="result-item-name">${placeProps.name || 'N/A'}</div><div class="result-item-address">${placeProps.address_line2 || ''}</div>`;
+
+                                resultsListElement.appendChild(listItem);
+
+                                listItem.addEventListener('mouseover', () => {
+                                    marker.setIcon(hospitalIconHighlight);
+                                    marker.setZIndexOffset(1000);
+                                });
+                                listItem.addEventListener('mouseout', () => {
+                                    marker.setIcon(hospitalIcon);
+                                    marker.setZIndexOffset(0);
+                                });
+                                listItem.addEventListener('click', () => {
+                                    map.flyTo([placeProps.lat, placeProps.lon], 15);
+                                });
+                            });
+                        })
+                        .catch(err => {
+                             showError("Could not fetch nearby hospitals.");
+                        });
+                },
+                (error) => {
+                    let errorMessage = "An unknown error occurred.";
+                    if (error.code === error.PERMISSION_DENIED) {
+                        errorMessage = "Location permission denied. Please enable it in your browser settings to use this feature.";
+                    }
+                    showError(errorMessage);
+                }
+            );
+        });
+        {% endif %}
     </script>
+
 </body>
 </html>

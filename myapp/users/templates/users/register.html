@@ -1,0 +1,27 @@
+{% load static crispy_forms_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - HAUspital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="antialiased flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-11/12 max-w-md relative">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Sign Up</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 ease-in-out shadow-md transform hover:scale-105 mt-6">
+                Sign Up
+            </button>
+        </form>
+        <p class="text-center text-gray-600 mt-6">
+            Already have an account?
+            <a href="{% url 'login' %}" class="text-indigo-600 hover:text-indigo-800 font-medium ml-1">Log In</a>
+        </p>
+    </div>
+</body>
+</html>
