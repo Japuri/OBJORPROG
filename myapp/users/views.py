@@ -105,3 +105,65 @@ def user_logout(request):
     logout(request)
     messages.info(request, 'You have been logged out.')
     return redirect('home')
+
+
+# views.py
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
+from django.contrib.auth.decorators import login_required
+from .models import Appointment, Doctor  # Assuming you have these models
+
+
+@login_required  # Ensures only logged-in users can access this
+def book_appointment_api(request):
+    if request.method == 'POST':
+        try:
+            # 1. Get data from the frontend
+            data = json.loads(request.body)
+            doctor_id = data.get('doctorId')
+            appointment_date = data.get('date')
+            appointment_time = data.get('time')
+            patient = request.user
+
+            # 2. Save the appointment to your database
+            # (This is a simplified example)
+            doctor = Doctor.objects.get(id=doctor_id)
+            new_appointment = Appointment.objects.create(
+                patient=patient,
+                doctor=doctor,
+                appointment_date=appointment_date,
+                appointment_time=appointment_time,
+                status='Booked'
+            )
+
+            # 3. Send the confirmation email
+            subject = 'Your Appointment Confirmation at HAUspital'
+            message = f"""
+Dear {patient.username},
+
+This email confirms your appointment with {doctor.name}.
+
+Date: {appointment_date}
+Time: {appointment_time}
+
+Thank you for choosing HAUspital.
+            """
+            send_mail(
+                subject,
+                message,
+                'noreply@hauspital.com',  # From email
+                [patient.email],  # To email (the user's registered email)
+                fail_silently=False,
+            )
+
+            # 4. Send a success response back to the frontend
+            return JsonResponse({'status': 'success', 'message': 'Appointment booked and email sent.'})
+
+        except Exception as e:
+            # If anything goes wrong, send an error response
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    # Handle non-POST requests
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)

@@ -17,6 +17,7 @@ urlpatterns = [
     # User Profile Dashboard
     path('profile/', views.profile_dashboard, name='profile_dashboard'),
 
+
     # Django's built-in password reset views (optional, but good to have)
     # path('password_reset/', auth_views.PasswordResetView.as_view(template_name='users/password_reset.html'), name='password_reset'),
     # path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='users/password_reset_done.html'), name='password_reset_done'),
