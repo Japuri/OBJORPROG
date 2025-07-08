@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
+    <!-- Leaflet.js for the Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhfR+UXS7IVjUGVsAA+x9saKkHQ+3yL1okNs="
         crossorigin=""/>
@@ -15,90 +16,91 @@
         crossorigin=""></script>
 
    <style>
-    /* Main container for the two-column layout */
+    /* --- Styles for Map Section --- */
     .map-layout-container {
         display: flex;
-        flex-direction: column; /* Mobile-first: stack columns */
+        flex-direction: column;
         height: 600px;
         border-radius: 1rem;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         background: #fff;
-
-        /* FIX: Establish a positioning context to control child elements */
         position: relative;
-        overflow: hidden; /* This is also very important */
+        overflow: hidden;
     }
-    /* On large screens, switch to side-by-side columns */
-    @media (min-width: 1024px) {
-        .map-layout-container {
-            flex-direction: row;
-        }
-    }
+    @media (min-width: 1024px) { .map-layout-container { flex-direction: row; } }
 
-    /* Sidebar for the list of hospitals */
     #results-list-container {
-        flex-basis: 33.333333%; /* 1/3 width on desktop */
+        flex-basis: 33.333333%;
         height: 250px;
         overflow-y: auto;
         border-bottom: 1px solid #e5e7eb;
-
-        /* FIX: Ensure sidebar is on a higher "layer" than the map */
         z-index: 10;
-        background-color: #ffffff; /* Explicit background to prevent transparency issues */
+        background-color: #ffffff;
     }
-    @media (min-width: 1024px) {
-        #results-list-container {
-            height: 100%;
-            border-right: 1px solid #e5e7eb;
-            border-bottom: none;
-        }
-    }
+    @media (min-width: 1024px) { #results-list-container { height: 100%; border-right: 1px solid #e5e7eb; border-bottom: none; } }
 
-    /* Container for the map itself */
     #map-container {
-        flex-basis: 66.666667%; /* 2/3 width on desktop */
+        flex-basis: 66.666667%;
         height: 350px;
-
-        /* FIX: Give map a lower "layer" and contain it */
         position: relative;
         z-index: 5;
     }
-    @media (min-width: 1024px) {
-        #map-container {
-            height: 100%;
-        }
-    }
-    #map {
-        width: 100%;
-        height: 100%;
-    }
+    @media (min-width: 1024px) { #map-container { height: 100%; } }
 
-    /* Styling for individual items in the results list */
+    #map { width: 100%; height: 100%; }
+
     .result-item {
         padding: 1rem;
         border-bottom: 1px solid #f3f4f6;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out;
     }
-    .result-item:hover, .result-item.highlighted {
-        background-color: #f3f4f6;
+    .result-item:hover, .result-item.highlighted { background-color: #f3f4f6; }
+    .result-item-name { font-weight: 600; color: #111827; }
+    .result-item-address { font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem; }
+
+    /* --- Styles for Dark Booking Section --- */
+    .booking-section-dark {
+        background-color: #1e293b; /* bg-slate-800 */
     }
-    .result-item-name {
+    .step-container { transition: opacity 0.5s ease-in-out; }
+
+    .doctor-card-dark, .time-slot-dark {
+        transition: all 0.2s ease-in-out;
+        border: 1px solid #475569; /* border-slate-600 */
+        background-color: #334155; /* bg-slate-700 */
+    }
+    .doctor-card-dark:hover, .time-slot-dark:hover {
+        border-color: #6366f1; /* border-indigo-500 */
+        background-color: #3e4c66; /* Slightly lighter slate */
+    }
+    .time-slot-dark.selected {
+        background-color: #4f46e5; /* bg-indigo-600 */
+        color: white;
+        border-color: #818cf8; /* border-indigo-400 */
         font-weight: 600;
-        color: #111827;
     }
-    .result-item-address {
-        font-size: 0.875rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
+    .doctor-card-dark.selected {
+        border-color: #6366f1; /* border-indigo-500 */
+        box-shadow: 0 0 0 2px #6366f1;
+        background-color: #4338ca; /* bg-indigo-700 */
+    }
+    .dark-input {
+        background-color: #475569; /* bg-slate-600 */
+        border-color: #64748b; /* border-slate-500 */
+        color: #f1f5f9; /* text-slate-100 */
+    }
+    .dark-input:focus {
+        border-color: #6366f1; /* border-indigo-500 */
+        ring-color: #6366f1;
     }
 </style>
 </head>
-<body class="antialiased" data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
+<body class="antialiased bg-gray-50" data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
     <input type="hidden" name="csrfmiddlewaretoken" id="csrf_token_input" value="{{ csrf_token }}">
 
-    <nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24 rounded-b-xl">
-        <div class="container mx-auto flex justify-between items-center">
+    <nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
             <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-700 hover:text-indigo-900">HAUspital</a>
             <div class="hidden md:flex space-x-8 items-center">
                 <a href="{% url 'home' %}" class="text-indigo-700 hover:text-indigo-900 font-bold">Home</a>
@@ -122,26 +124,27 @@
         <div class="md:hidden mt-4 space-y-2 px-4 py-2 bg-gray-50 rounded-lg shadow-sm hidden" id="mobileMenu"></div>
     </nav>
 
-    <header class="relative text-white py-20 md:py-32 rounded-bl-3xl rounded-br-3xl shadow-xl mb-12 overflow-hidden" style="background-image: url('{% static 'images/bg2.jpg' %}'); background-size: cover; background-position: center;">
+    <header class="relative text-white py-20 md:py-32 shadow-xl mb-12" style="background-image: url('{% static 'images/bg2.jpg' %}'); background-size: cover; background-position: center;">
         <div class="absolute inset-0 bg-black opacity-20 backdrop-blur-sm"></div>
-        <div class="container mx-auto text-center px-4 relative z-10">
+        <div class="max-w-7xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
             {% if user.is_authenticated %}
                 <h1 class="text-4xl md:text-6xl font-extrabold mb-6">Welcome back, {{ user.username }}!</h1>
-                <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">Find the closest HAUspital partner near you.</p>
-                <a href="{% url 'profile_dashboard' %}" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg">Go to Dashboard</a>
+                <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">Find nearby hospitals or book an appointment below.</p>
+                <a href="#booking-section" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg">Book an Appointment</a>
             {% else %}
                 <h1 class="text-4xl md:text-6xl font-extrabold mb-6">Welcome to HAUspital</h1>
                 <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">Your trusted partner in health.</p>
-                <a href="{% url 'register' %}" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg">Book an Appointment</a>
+                <a href="{% url 'register' %}" class="inline-block bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full shadow-lg">Get Started</a>
             {% endif %}
         </div>
     </header>
 
-    <div class="container mx-auto py-12 px-4">
+    <!-- Main Content Wrapper - MODIFIED FOR WIDER LAYOUT -->
+    <div class="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {% if user.is_authenticated %}
-            <section class="mb-12">
+            <!-- SECTION 1: HOSPITALS NEAR YOU -->
+            <section class="mb-24">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8">Hospitals Near You</h2>
-
                 <div class="map-layout-container">
                     <div id="results-list-container">
                         <div id="results-list">
@@ -152,10 +155,83 @@
                         <div id="map"></div>
                     </div>
                 </div>
-
                 <div id="map-error" class="hidden mt-4 p-4 bg-red-100 text-red-800 rounded-lg shadow-sm"></div>
             </section>
+
+            <!-- SECTION 2: BOOK AN APPOINTMENT -->
+            <section id="booking-section" class="mb-12">
+                <div class="booking-section-dark p-8 rounded-2xl shadow-xl">
+                    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">Book an Appointment</h1>
+                    <p class="text-slate-400 mb-8">Follow the steps below to schedule your visit.</p>
+
+                    <!-- Step 1: Select Specialty & Doctor -->
+                    <div id="step1" class="step-container">
+                        <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 1: Choose a Doctor</h2>
+                        <div class="mb-6">
+                            <label for="specialty" class="block text-sm font-medium text-slate-300 mb-2">Filter by Specialty:</label>
+                            <select id="specialty" name="specialty" class="dark-input w-full md:w-1/2 p-2 border rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="all">All Specialties</option>
+                                <option value="cardiology">Cardiology</option>
+                                <option value="pediatrics">Pediatrics</option>
+                                <option value="neurology">Neurology</option>
+                                <option value="general">General Medicine</option>
+                            </select>
+                        </div>
+                        <div id="doctor-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-specialty="cardiology" data-doctor-id="1" data-doctor-name="Dr. John Doe">
+                                <h3 class="font-bold text-lg">Dr. John Doe</h3>
+                                <p class="text-indigo-400">Cardiology</p>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-specialty="pediatrics" data-doctor-id="2" data-doctor-name="Dr. Jane Smith">
+                                <h3 class="font-bold text-lg">Dr. Jane Smith</h3>
+                                <p class="text-indigo-400">Pediatrics</p>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-specialty="neurology" data-doctor-id="3" data-doctor-name="Dr. Emily White">
+                                <h3 class="font-bold text-lg">Dr. Emily White</h3>
+                                <p class="text-indigo-400">Neurology</p>
+                            </div>
+                             <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-specialty="general" data-doctor-id="4" data-doctor-name="Dr. Michael Brown">
+                                <h3 class="font-bold text-lg">Dr. Michael Brown</h3>
+                                <p class="text-indigo-400">General Medicine</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Select Date & Time (Initially Hidden) -->
+                    <div id="step2" class="step-container mt-8 hidden">
+                        <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 2: Select Date & Time</h2>
+                        <p class="mb-4 text-slate-300">Available slots for <strong id="selectedDoctorName" class="text-indigo-400"></strong>:</p>
+                        <input type="date" id="appointmentDate" class="dark-input w-full md:w-1/2 p-2 border rounded-lg shadow-sm mb-6">
+                        <div id="time-slots" class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                            <div class="time-slot-dark text-slate-200 rounded-lg p-3 text-center cursor-pointer">09:00 AM</div>
+                            <div class="time-slot-dark text-slate-200 rounded-lg p-3 text-center cursor-pointer">09:30 AM</div>
+                            <div class="time-slot-dark text-slate-200 rounded-lg p-3 text-center cursor-pointer">10:00 AM</div>
+                            <div class="time-slot-dark text-slate-500 rounded-lg p-3 text-center bg-slate-800 border-slate-700 cursor-not-allowed">10:30 AM</div>
+                            <div class="time-slot-dark text-slate-200 rounded-lg p-3 text-center cursor-pointer">11:00 AM</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Confirmation (Initially Hidden) -->
+                    <div id="step3" class="step-container mt-8 hidden">
+                        <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 3: Confirm Your Booking</h2>
+                        <div class="bg-slate-700 p-6 rounded-lg">
+                            <h3 class="font-bold text-lg text-white mb-4">Appointment Details:</h3>
+                            <div class="space-y-2 text-slate-300">
+                                <p><span class="font-semibold text-slate-100">Patient:</span> {{ user.username }}</p>
+                                <p><span class="font-semibold text-slate-100">Doctor:</span> <span id="confirmDoctor"></span></p>
+                                <p><span class="font-semibold text-slate-100">Date:</span> <span id="confirmDate"></span></p>
+                                <p><span class="font-semibold text-slate-100">Time:</span> <span id="confirmTime"></span></p>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex justify-between items-center">
+                            <button id="backButton" class="text-slate-400 hover:text-white font-medium">Go Back</button>
+                            <button id="confirmBookingButton" class="bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 shadow-md">Confirm Booking</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
         {% else %}
+            <!-- Logged-out users see the "Why Choose Us" section -->
             <section class="mb-12">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-10">Why Choose HAUspital?</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -167,8 +243,8 @@
         {% endif %}
     </div>
 
-    <footer class="bg-gray-800 text-gray-300 py-8 mt-12 rounded-t-xl">
-        <div class="container mx-auto text-center px-4">
+    <footer class="bg-gray-800 text-gray-300 py-8 mt-12">
+        <div class="max-w-7xl mx-auto text-center px-4 sm:px-6 lg:px-8">
             <p>© 2025 HAUspital. All rights reserved.</p>
         </div>
     </footer>
@@ -183,91 +259,170 @@
             });
         }
 
-        {% if user.is_authenticated %}
+        // Combined script for both features
         document.addEventListener('DOMContentLoaded', () => {
-            const geoapifyApiKey = '8a2011283bd148e489e83a87175f641d';
+            const isAuthenticated = document.body.dataset.isAuthenticated === 'true';
+            if (!isAuthenticated) return;
 
-            const mapElement = document.getElementById('map');
-            const resultsListElement = document.getElementById('results-list');
-            const mapErrorElement = document.getElementById('map-error');
-            const mapLayoutContainer = document.querySelector('.map-layout-container');
+            // --- 1. HOSPITAL MAP LOGIC ---
+            const initMap = () => {
+                const geoapifyApiKey = '8a2011283bd148e489e83a87175f641d';
+                const mapElement = document.getElementById('map');
+                if (!mapElement) return;
 
-            const showError = (message) => {
-                mapErrorElement.textContent = message;
-                mapErrorElement.classList.remove('hidden');
-                mapLayoutContainer.style.display = 'none';
+                const resultsListElement = document.getElementById('results-list');
+                const mapErrorElement = document.getElementById('map-error');
+                const mapLayoutContainer = document.querySelector('.map-layout-container');
+
+                const showError = (message) => {
+                    mapErrorElement.textContent = message;
+                    mapErrorElement.classList.remove('hidden');
+                    if (mapLayoutContainer) mapLayoutContainer.style.display = 'none';
+                };
+
+                if (!navigator.geolocation) {
+                    showError("Geolocation is not supported by your browser.");
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userLat = position.coords.latitude;
+                        const userLon = position.coords.longitude;
+                        const map = L.map('map').setView([userLat, userLon], 13);
+                        L.tileLayer(`https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${geoapifyApiKey}`, {
+                            attribution: 'Powered by <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+                        }).addTo(map);
+
+                        const userIcon = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%231e90ff&icon=person&iconSize=large&apiKey=${geoapifyApiKey}`, iconSize: [38, 55], iconAnchor: [19, 53] });
+                        const hospitalIcon = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%23ff3333&icon=local_hospital&iconSize=large&apiKey=${geoapifyApiKey}`, iconSize: [38, 55], iconAnchor: [19, 53] });
+                        const hospitalIconHighlight = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%23b60000&icon=local_hospital&iconSize=xlarge&apiKey=${geoapifyApiKey}`, iconSize: [46, 66], iconAnchor: [23, 64] });
+
+                        L.marker([userLat, userLon], { icon: userIcon }).addTo(map).bindTooltip("Your Location");
+                        const placesApiUrl = `https://api.geoapify.com/v2/places?categories=healthcare.hospital&filter=circle:${userLon},${userLat},5000&bias=proximity:${userLon},${userLat}&limit=20&apiKey=${geoapifyApiKey}`;
+
+                        fetch(placesApiUrl)
+                            .then(response => response.json())
+                            .then(data => {
+                                resultsListElement.innerHTML = '';
+                                if (data.features.length === 0) {
+                                    resultsListElement.innerHTML = '<div class="p-4 text-center text-gray-500">No hospitals found within 5km.</div>';
+                                    return;
+                                }
+                                data.features.forEach(place => {
+                                    const placeProps = place.properties;
+                                    const marker = L.marker([placeProps.lat, placeProps.lon], { icon: hospitalIcon }).addTo(map);
+                                    const listItem = document.createElement('div');
+                                    listItem.className = 'result-item';
+                                    listItem.innerHTML = `<div class="result-item-name">${placeProps.name || 'N/A'}</div><div class="result-item-address">${placeProps.address_line2 || ''}</div>`;
+                                    resultsListElement.appendChild(listItem);
+                                    listItem.addEventListener('mouseover', () => { marker.setIcon(hospitalIconHighlight); marker.setZIndexOffset(1000); });
+                                    listItem.addEventListener('mouseout', () => { marker.setIcon(hospitalIcon); marker.setZIndexOffset(0); });
+                                    listItem.addEventListener('click', () => { map.flyTo([placeProps.lat, placeProps.lon], 15); });
+                                });
+                            }).catch(err => showError("Could not fetch nearby hospitals."));
+                    },
+                    (error) => {
+                        let msg = "An unknown error occurred.";
+                        if (error.code === error.PERMISSION_DENIED) msg = "Location permission denied. Please enable it to use this feature.";
+                        showError(msg);
+                    }
+                );
             };
 
-            if (!navigator.geolocation) {
-                showError("Geolocation is not supported by your browser.");
-                return;
-            }
+            // --- 2. APPOINTMENT BOOKING LOGIC ---
+            const initBooking = () => {
+                const step1 = document.getElementById('step1');
+                if (!step1) return;
 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const userLat = position.coords.latitude;
-                    const userLon = position.coords.longitude;
+                const bookingState = { doctorId: null, doctorName: null, date: null, time: null };
+                const step2 = document.getElementById('step2');
+                const step3 = document.getElementById('step3');
+                const specialtyFilter = document.getElementById('specialty');
+                const doctorCards = document.querySelectorAll('.doctor-card-dark');
+                const timeSlots = document.querySelectorAll('.time-slot-dark:not(.cursor-not-allowed)');
+                const datePicker = document.getElementById('appointmentDate');
+                const selectedDoctorNameEl = document.getElementById('selectedDoctorName');
+                const confirmDoctorEl = document.getElementById('confirmDoctor');
+                const confirmDateEl = document.getElementById('confirmDate');
+                const confirmTimeEl = document.getElementById('confirmTime');
+                const backButton = document.getElementById('backButton');
+                const confirmBookingButton = document.getElementById('confirmBookingButton');
+                const csrfToken = document.getElementById('csrf_token_input').value;
 
-                    const map = L.map('map').setView([userLat, userLon], 13);
-                    L.tileLayer(`https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${geoapifyApiKey}`, {
-                        attribution: 'Powered by <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
-                    }).addTo(map);
+                specialtyFilter.addEventListener('change', (e) => {
+                    const selectedSpecialty = e.target.value;
+                    doctorCards.forEach(card => {
+                        card.style.display = (selectedSpecialty === 'all' || card.dataset.specialty === selectedSpecialty) ? 'block' : 'none';
+                    });
+                });
 
-                    const userIcon = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%231e90ff&icon=person&iconSize=large&apiKey=${geoapifyApiKey}`, iconSize: [38, 55], iconAnchor: [19, 53] });
-                    const hospitalIcon = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%23ff3333&icon=local_hospital&iconSize=large&apiKey=${geoapifyApiKey}`, iconSize: [38, 55], iconAnchor: [19, 53] });
-                    const hospitalIconHighlight = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%23b60000&icon=local_hospital&iconSize=xlarge&apiKey=${geoapifyApiKey}`, iconSize: [46, 66], iconAnchor: [23, 64] });
+                doctorCards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        bookingState.doctorId = card.dataset.doctorId;
+                        bookingState.doctorName = card.dataset.doctorName;
+                        doctorCards.forEach(c => c.classList.remove('selected'));
+                        card.classList.add('selected');
+                        selectedDoctorNameEl.textContent = bookingState.doctorName;
+                        step1.style.opacity = '0.5';
+                        step2.classList.remove('hidden');
+                        step3.classList.add('hidden');
+                    });
+                });
 
-                    L.marker([userLat, userLon], { icon: userIcon }).addTo(map).bindTooltip("Your Location");
+                timeSlots.forEach(slot => {
+                    slot.addEventListener('click', () => {
+                        if (!datePicker.value) { alert('Please select a date first.'); return; }
+                        bookingState.date = datePicker.value;
+                        bookingState.time = slot.textContent;
+                        timeSlots.forEach(s => s.classList.remove('selected'));
+                        slot.classList.add('selected');
+                        confirmDoctorEl.textContent = bookingState.doctorName;
+                        confirmDateEl.textContent = new Date(bookingState.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        confirmTimeEl.textContent = bookingState.time;
+                        step2.style.opacity = '0.5';
+                        step3.classList.remove('hidden');
+                    });
+                });
 
-                    const placesApiUrl = `https://api.geoapify.com/v2/places?categories=healthcare.hospital&filter=circle:${userLon},${userLat},5000&bias=proximity:${userLon},${userLat}&limit=20&apiKey=${geoapifyApiKey}`;
+                backButton.addEventListener('click', () => {
+                    step3.classList.add('hidden');
+                    step2.style.opacity = '1';
+                });
 
-                    fetch(placesApiUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            resultsListElement.innerHTML = ''; // Clear "Searching..."
+                confirmBookingButton.addEventListener('click', () => {
+                    confirmBookingButton.disabled = true;
+                    confirmBookingButton.textContent = 'Booking...';
 
-                            if (data.features.length === 0) {
-                                resultsListElement.innerHTML = '<div class="p-4 text-center text-gray-500">No hospitals found within 5km.</div>';
-                                return;
-                            }
+                    fetch('/api/book-appointment/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify(bookingState)
+                    })
+                    .then(response => {
+                        if (response.ok) { return response.json(); }
+                        throw new Error('Server responded with an error.');
+                    })
+                    .then(data => {
+                        alert('Booking Confirmed! A confirmation email has been sent.');
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to book appointment. Please try again.');
+                        confirmBookingButton.disabled = false;
+                        confirmBookingButton.textContent = 'Confirm Booking';
+                    });
+                });
+            };
 
-                            data.features.forEach(place => {
-                                const placeProps = place.properties;
-                                const marker = L.marker([placeProps.lat, placeProps.lon], { icon: hospitalIcon }).addTo(map);
-
-                                const listItem = document.createElement('div');
-                                listItem.className = 'result-item';
-                                listItem.innerHTML = `<div class="result-item-name">${placeProps.name || 'N/A'}</div><div class="result-item-address">${placeProps.address_line2 || ''}</div>`;
-
-                                resultsListElement.appendChild(listItem);
-
-                                listItem.addEventListener('mouseover', () => {
-                                    marker.setIcon(hospitalIconHighlight);
-                                    marker.setZIndexOffset(1000);
-                                });
-                                listItem.addEventListener('mouseout', () => {
-                                    marker.setIcon(hospitalIcon);
-                                    marker.setZIndexOffset(0);
-                                });
-                                listItem.addEventListener('click', () => {
-                                    map.flyTo([placeProps.lat, placeProps.lon], 15);
-                                });
-                            });
-                        })
-                        .catch(err => {
-                             showError("Could not fetch nearby hospitals.");
-                        });
-                },
-                (error) => {
-                    let errorMessage = "An unknown error occurred.";
-                    if (error.code === error.PERMISSION_DENIED) {
-                        errorMessage = "Location permission denied. Please enable it in your browser settings to use this feature.";
-                    }
-                    showError(errorMessage);
-                }
-            );
+            // Initialize both features
+            initMap();
+            initBooking();
         });
-        {% endif %}
     </script>
 
 </body>

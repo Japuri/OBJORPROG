@@ -42,3 +42,11 @@ def save_user_profile(sender, instance, **kwargs):
     Automatically saves the Profile object whenever the associated User is saved.
     """
     instance.profile.save()
+
+
+class Appointment:
+    pass
+
+
+class Doctor:
+    pass
