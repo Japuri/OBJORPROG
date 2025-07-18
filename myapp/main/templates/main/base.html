@@ -1,0 +1,60 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- The title will be inherited or overridden by child templates -->
+    <title>{% block title %}HAUspital{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- This block allows child templates like index.html to add extra head content (like Leaflet CSS/JS) -->
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="antialiased bg-gray-50" data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
+    <input type="hidden" name="csrfmiddlewaretoken" id="csrf_token_input" value="{{ csrf_token }}">
+
+    <nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24 rounded-b-xl">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-700 hover:text-indigo-900">HAUspital</a>
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="{% url 'home' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Home</a>
+                <a href="{% url 'features' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Features</a>
+                <a href="{% url 'about' %}" class="text-gray-600 hover:text-indigo-700 font-medium">About</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profile_dashboard' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Profile</a>
+                    <a href="{% url 'lab_results' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Lab Results</a>
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 shadow-md">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Login</a>
+                    <a href="{% url 'register' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700 shadow-md">Sign Up</a>
+                {% endif %}
+            </div>
+            <button class="md:hidden text-gray-600 hover:text-indigo-700" id="mobileMenuButton">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+        <div class="md:hidden mt-4 space-y-2 px-4 py-2 bg-gray-50 rounded-lg shadow-sm hidden" id="mobileMenu">
+            <!-- Mobile menu links would go here -->
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}
+        <!-- The content from other templates like index.html or lab_results.html will be inserted here -->
+        {% endblock %}
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-8 mt-12">
+        <div class="max-w-7xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <p>© 2025 HAUspital. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- The main JS file is loaded here -->
+    <script src="{% static 'js/main.js' %}" defer></script>
+</body>
+</html>

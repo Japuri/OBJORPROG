@@ -52,54 +52,47 @@
     .result-item {
         padding: 1rem;
         border-bottom: 1px solid #f3f4f6;
-        cursor: pointer;
         transition: background-color 0.2s ease-in-out;
     }
     .result-item:hover, .result-item.highlighted { background-color: #f3f4f6; }
-    .result-item-name { font-weight: 600; color: #111827; }
+    .result-item-name { font-weight: 600; color: #111827; cursor: pointer; }
     .result-item-address { font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem; }
 
-    /* --- Styles for Dark Booking Section --- */
-    .booking-section-dark {
-        background-color: #1e293b; /* bg-slate-800 */
-    }
-    .step-container { transition: opacity 0.5s ease-in-out; }
-
-    .doctor-card-dark, .time-slot-dark {
-        transition: all 0.2s ease-in-out;
-        border: 1px solid #475569; /* border-slate-600 */
-        background-color: #334155; /* bg-slate-700 */
-    }
-    .doctor-card-dark:hover, .time-slot-dark:hover {
-        border-color: #6366f1; /* border-indigo-500 */
-        background-color: #3e4c66; /* Slightly lighter slate */
-    }
-    .time-slot-dark.selected {
+    .services-container { margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .service-tag { background-color: #eef2ff; color: #4338ca; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+    .view-doctors-button {
+        margin-top: 1rem;
+        width: 100%;
         background-color: #4f46e5; /* bg-indigo-600 */
         color: white;
-        border-color: #818cf8; /* border-indigo-400 */
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        text-align: center;
         font-weight: 600;
+        transition: background-color 0.2s;
+        cursor: pointer;
     }
-    .doctor-card-dark.selected {
-        border-color: #6366f1; /* border-indigo-500 */
-        box-shadow: 0 0 0 2px #6366f1;
-        background-color: #4338ca; /* bg-indigo-700 */
+    .view-doctors-button:hover { background-color: #4338ca; /* bg-indigo-700 */ }
+
+    /* --- Styles for Dark Booking Section --- */
+    .booking-section-dark { background-color: #1e293b; }
+    .step-container { transition: opacity 0.5s ease-in-out; }
+    .doctor-card-dark, .time-slot-dark {
+        transition: all 0.2s ease-in-out;
+        border: 1px solid #475569;
+        background-color: #334155;
     }
-    .dark-input {
-        background-color: #475569; /* bg-slate-600 */
-        border-color: #64748b; /* border-slate-500 */
-        color: #f1f5f9; /* text-slate-100 */
-    }
-    .dark-input:focus {
-        border-color: #6366f1; /* border-indigo-500 */
-        ring-color: #6366f1;
-    }
+    .doctor-card-dark:hover, .time-slot-dark:hover { border-color: #6366f1; background-color: #3e4c66; }
+    .time-slot-dark.selected { background-color: #4f46e5; color: white; border-color: #818cf8; font-weight: 600; }
+    .doctor-card-dark.selected { border-color: #6366f1; box-shadow: 0 0 0 2px #6366f1; background-color: #4338ca; }
+    .dark-input { background-color: #475569; border-color: #64748b; color: #f1f5f9; }
+    .dark-input:focus { border-color: #6366f1; ring-color: #6366f1; }
 </style>
 </head>
 <body class="antialiased bg-gray-50" data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
     <input type="hidden" name="csrfmiddlewaretoken" id="csrf_token_input" value="{{ csrf_token }}">
 
-    <nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24">
+    <nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24 rounded-b-xl">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-700 hover:text-indigo-900">HAUspital</a>
             <div class="hidden md:flex space-x-8 items-center">
@@ -108,6 +101,7 @@
                 <a href="{% url 'about' %}" class="text-gray-600 hover:text-indigo-700 font-medium">About</a>
                 {% if user.is_authenticated %}
                     <a href="{% url 'profile_dashboard' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Profile</a>
+                    <a href="{% url 'lab_results' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Lab Results</a>
                     <form action="{% url 'logout' %}" method="post" class="inline">
                         {% csrf_token %}
                         <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 shadow-md">Logout</button>
@@ -121,7 +115,26 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
         </div>
-        <div class="md:hidden mt-4 space-y-2 px-4 py-2 bg-gray-50 rounded-lg shadow-sm hidden" id="mobileMenu"></div>
+        <div class="md:hidden mt-4 space-y-2 px-4 py-2 bg-gray-50 rounded-lg shadow-sm hidden" id="mobileMenu">
+            <a href="{% url 'home' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Home</a>
+            <a href="{% url 'features' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Features</a>
+            <a href="{% url 'about' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">About</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'profile_dashboard' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Profile</a>
+                <a href="{% url 'lab_results' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Lab Results</a>
+                <form action="{% url 'logout' %}" method="post" class="block">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full text-left bg-red-500 text-white py-2 px-3 rounded-md font-semibold hover:bg-red-600">
+                        Logout
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Login</a>
+                <a href="{% url 'register' %}" class="block bg-indigo-600 text-white py-2 px-3 rounded-md font-semibold hover:bg-indigo-700 shadow-md">
+                    Sign Up
+                </a>
+            {% endif %}
+        </div>
     </nav>
 
     <header class="relative text-white py-20 md:py-32 shadow-xl mb-12" style="background-image: url('{% static 'images/bg2.jpg' %}'); background-size: cover; background-position: center;">
@@ -139,7 +152,6 @@
         </div>
     </header>
 
-    <!-- Main Content Wrapper - MODIFIED FOR WIDER LAYOUT -->
     <div class="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {% if user.is_authenticated %}
             <!-- SECTION 1: HOSPITALS NEAR YOU -->
@@ -161,12 +173,15 @@
             <!-- SECTION 2: BOOK AN APPOINTMENT -->
             <section id="booking-section" class="mb-12">
                 <div class="booking-section-dark p-8 rounded-2xl shadow-xl">
-                    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">Book an Appointment</h1>
-                    <p class="text-slate-400 mb-8">Follow the steps below to schedule your visit.</p>
-
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            <h1 id="booking-section-title" class="text-3xl md:text-4xl font-bold text-white transition-all duration-300">Book an Appointment</h1>
+                            <p class="text-slate-400" id="booking-subtitle">Select a hospital from the map above or choose from the doctors below.</p>
+                        </div>
+                        <button id="show-all-doctors" class="hidden bg-slate-600 text-white text-sm font-semibold py-2 px-4 rounded-lg hover:bg-slate-500">Show All Doctors</button>
+                    </div>
                     <!-- Step 1: Select Specialty & Doctor -->
                     <div id="step1" class="step-container">
-                        <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 1: Choose a Doctor</h2>
                         <div class="mb-6">
                             <label for="specialty" class="block text-sm font-medium text-slate-300 mb-2">Filter by Specialty:</label>
                             <select id="specialty" name="specialty" class="dark-input w-full md:w-1/2 p-2 border rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
@@ -175,29 +190,78 @@
                                 <option value="pediatrics">Pediatrics</option>
                                 <option value="neurology">Neurology</option>
                                 <option value="general">General Medicine</option>
+                                <option value="orthopedics">Orthopedics</option>
+                                <option value="dermatology">Dermatology</option>
+                                <option value="gastroenterology">Gastroenterology</option>
+                                <option value="pulmonology">Pulmonology</option>
+                                <option value="endocrinology">Endocrinology</option>
                             </select>
                         </div>
-                        <div id="doctor-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-specialty="cardiology" data-doctor-id="1" data-doctor-name="Dr. John Doe">
+                        <div id="doctor-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            <!-- Doctors List -->
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="cardiology" data-doctor-id="1" data-doctor-name="Dr. John Doe">
                                 <h3 class="font-bold text-lg">Dr. John Doe</h3>
-                                <p class="text-indigo-400">Cardiology</p>
                             </div>
-                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-specialty="pediatrics" data-doctor-id="2" data-doctor-name="Dr. Jane Smith">
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="pediatrics" data-doctor-id="2" data-doctor-name="Dr. Jane Smith">
                                 <h3 class="font-bold text-lg">Dr. Jane Smith</h3>
-                                <p class="text-indigo-400">Pediatrics</p>
                             </div>
-                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-specialty="neurology" data-doctor-id="3" data-doctor-name="Dr. Emily White">
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="neurology" data-doctor-id="3" data-doctor-name="Dr. Emily White">
                                 <h3 class="font-bold text-lg">Dr. Emily White</h3>
-                                <p class="text-indigo-400">Neurology</p>
                             </div>
-                             <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-specialty="general" data-doctor-id="4" data-doctor-name="Dr. Michael Brown">
+                             <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="general" data-doctor-id="4" data-doctor-name="Dr. Michael Brown">
                                 <h3 class="font-bold text-lg">Dr. Michael Brown</h3>
-                                <p class="text-indigo-400">General Medicine</p>
+                            </div>
+                             <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="cardiology" data-doctor-id="5" data-doctor-name="Dr. Chris Wilson">
+                                <h3 class="font-bold text-lg">Dr. Chris Wilson</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="pediatrics" data-doctor-id="6" data-doctor-name="Dr. Patricia Garcia">
+                                <h3 class="font-bold text-lg">Dr. Patricia Garcia</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="orthopedics" data-doctor-id="7" data-doctor-name="Dr. David Lee">
+                                <h3 class="font-bold text-lg">Dr. David Lee</h3>
+                            </div>
+                             <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="general" data-doctor-id="8" data-doctor-name="Dr. Sarah Chen">
+                                <h3 class="font-bold text-lg">Dr. Sarah Chen</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="dermatology" data-doctor-id="9" data-doctor-name="Dr. Maria Santos">
+                                <h3 class="font-bold text-lg">Dr. Maria Santos</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="orthopedics" data-doctor-id="10" data-doctor-name="Dr. Carlos Reyes">
+                                <h3 class="font-bold text-lg">Dr. Carlos Reyes</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="gastroenterology" data-doctor-id="11" data-doctor-name="Dr. Anna Cruz">
+                                <h3 class="font-bold text-lg">Dr. Anna Cruz</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="pulmonology" data-doctor-id="12" data-doctor-name="Dr. Luis Martin">
+                                <h3 class="font-bold text-lg">Dr. Luis Martin</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="endocrinology" data-doctor-id="13" data-doctor-name="Dr. Sofia Torres">
+                                <h3 class="font-bold text-lg">Dr. Sofia Torres</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="cardiology" data-doctor-id="14" data-doctor-name="Dr. James Rodriguez">
+                                <h3 class="font-bold text-lg">Dr. James Rodriguez</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="pediatrics" data-doctor-id="15" data-doctor-name="Dr. Isabella Lim">
+                                <h3 class="font-bold text-lg">Dr. Isabella Lim</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="neurology" data-doctor-id="16" data-doctor-name="Dr. Lucas Garcia">
+                                <h3 class="font-bold text-lg">Dr. Lucas Garcia</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="general" data-doctor-id="17" data-doctor-name="Dr. Olivia Mercado">
+                                <h3 class="font-bold text-lg">Dr. Olivia Mercado</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="dermatology" data-doctor-id="18" data-doctor-name="Dr. Ethan Bautista">
+                                <h3 class="font-bold text-lg">Dr. Ethan Bautista</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="gastroenterology" data-doctor-id="19" data-doctor-name="Dr. Ava Gonzales">
+                                <h3 class="font-bold text-lg">Dr. Ava Gonzales</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="pulmonology" data-doctor-id="20" data-doctor-name="Dr. Noah Villanueva">
+                                <h3 class="font-bold text-lg">Dr. Noah Villanueva</h3>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Step 2: Select Date & Time (Initially Hidden) -->
+                   <!-- Step 2: Select Date & Time (Initially Hidden) -->
                     <div id="step2" class="step-container mt-8 hidden">
                         <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 2: Select Date & Time</h2>
                         <p class="mb-4 text-slate-300">Available slots for <strong id="selectedDoctorName" class="text-indigo-400"></strong>:</p>
@@ -230,8 +294,9 @@
                     </div>
                 </div>
             </section>
+
         {% else %}
-            <!-- Logged-out users see the "Why Choose Us" section -->
+            <!-- This block is now ONLY for logged-out users -->
             <section class="mb-12">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-10">Why Choose HAUspital?</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -249,181 +314,8 @@
         </div>
     </footer>
 
-    <script>
-        // Mobile menu toggle
-        const mobileMenuButton = document.getElementById('mobileMenuButton');
-        const mobileMenu = document.getElementById('mobileMenu');
-        if (mobileMenuButton && mobileMenu) {
-            mobileMenuButton.addEventListener('click', () => {
-                mobileMenu.classList.toggle('hidden');
-            });
-        }
-
-        // Combined script for both features
-        document.addEventListener('DOMContentLoaded', () => {
-            const isAuthenticated = document.body.dataset.isAuthenticated === 'true';
-            if (!isAuthenticated) return;
-
-            // --- 1. HOSPITAL MAP LOGIC ---
-            const initMap = () => {
-                const geoapifyApiKey = '8a2011283bd148e489e83a87175f641d';
-                const mapElement = document.getElementById('map');
-                if (!mapElement) return;
-
-                const resultsListElement = document.getElementById('results-list');
-                const mapErrorElement = document.getElementById('map-error');
-                const mapLayoutContainer = document.querySelector('.map-layout-container');
-
-                const showError = (message) => {
-                    mapErrorElement.textContent = message;
-                    mapErrorElement.classList.remove('hidden');
-                    if (mapLayoutContainer) mapLayoutContainer.style.display = 'none';
-                };
-
-                if (!navigator.geolocation) {
-                    showError("Geolocation is not supported by your browser.");
-                    return;
-                }
-
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const userLat = position.coords.latitude;
-                        const userLon = position.coords.longitude;
-                        const map = L.map('map').setView([userLat, userLon], 13);
-                        L.tileLayer(`https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${geoapifyApiKey}`, {
-                            attribution: 'Powered by <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
-                        }).addTo(map);
-
-                        const userIcon = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%231e90ff&icon=person&iconSize=large&apiKey=${geoapifyApiKey}`, iconSize: [38, 55], iconAnchor: [19, 53] });
-                        const hospitalIcon = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%23ff3333&icon=local_hospital&iconSize=large&apiKey=${geoapifyApiKey}`, iconSize: [38, 55], iconAnchor: [19, 53] });
-                        const hospitalIconHighlight = L.icon({ iconUrl: `https://api.geoapify.com/v1/icon/?type=material&color=%23b60000&icon=local_hospital&iconSize=xlarge&apiKey=${geoapifyApiKey}`, iconSize: [46, 66], iconAnchor: [23, 64] });
-
-                        L.marker([userLat, userLon], { icon: userIcon }).addTo(map).bindTooltip("Your Location");
-                        const placesApiUrl = `https://api.geoapify.com/v2/places?categories=healthcare.hospital&filter=circle:${userLon},${userLat},5000&bias=proximity:${userLon},${userLat}&limit=20&apiKey=${geoapifyApiKey}`;
-
-                        fetch(placesApiUrl)
-                            .then(response => response.json())
-                            .then(data => {
-                                resultsListElement.innerHTML = '';
-                                if (data.features.length === 0) {
-                                    resultsListElement.innerHTML = '<div class="p-4 text-center text-gray-500">No hospitals found within 5km.</div>';
-                                    return;
-                                }
-                                data.features.forEach(place => {
-                                    const placeProps = place.properties;
-                                    const marker = L.marker([placeProps.lat, placeProps.lon], { icon: hospitalIcon }).addTo(map);
-                                    const listItem = document.createElement('div');
-                                    listItem.className = 'result-item';
-                                    listItem.innerHTML = `<div class="result-item-name">${placeProps.name || 'N/A'}</div><div class="result-item-address">${placeProps.address_line2 || ''}</div>`;
-                                    resultsListElement.appendChild(listItem);
-                                    listItem.addEventListener('mouseover', () => { marker.setIcon(hospitalIconHighlight); marker.setZIndexOffset(1000); });
-                                    listItem.addEventListener('mouseout', () => { marker.setIcon(hospitalIcon); marker.setZIndexOffset(0); });
-                                    listItem.addEventListener('click', () => { map.flyTo([placeProps.lat, placeProps.lon], 15); });
-                                });
-                            }).catch(err => showError("Could not fetch nearby hospitals."));
-                    },
-                    (error) => {
-                        let msg = "An unknown error occurred.";
-                        if (error.code === error.PERMISSION_DENIED) msg = "Location permission denied. Please enable it to use this feature.";
-                        showError(msg);
-                    }
-                );
-            };
-
-            // --- 2. APPOINTMENT BOOKING LOGIC ---
-            const initBooking = () => {
-                const step1 = document.getElementById('step1');
-                if (!step1) return;
-
-                const bookingState = { doctorId: null, doctorName: null, date: null, time: null };
-                const step2 = document.getElementById('step2');
-                const step3 = document.getElementById('step3');
-                const specialtyFilter = document.getElementById('specialty');
-                const doctorCards = document.querySelectorAll('.doctor-card-dark');
-                const timeSlots = document.querySelectorAll('.time-slot-dark:not(.cursor-not-allowed)');
-                const datePicker = document.getElementById('appointmentDate');
-                const selectedDoctorNameEl = document.getElementById('selectedDoctorName');
-                const confirmDoctorEl = document.getElementById('confirmDoctor');
-                const confirmDateEl = document.getElementById('confirmDate');
-                const confirmTimeEl = document.getElementById('confirmTime');
-                const backButton = document.getElementById('backButton');
-                const confirmBookingButton = document.getElementById('confirmBookingButton');
-                const csrfToken = document.getElementById('csrf_token_input').value;
-
-                specialtyFilter.addEventListener('change', (e) => {
-                    const selectedSpecialty = e.target.value;
-                    doctorCards.forEach(card => {
-                        card.style.display = (selectedSpecialty === 'all' || card.dataset.specialty === selectedSpecialty) ? 'block' : 'none';
-                    });
-                });
-
-                doctorCards.forEach(card => {
-                    card.addEventListener('click', () => {
-                        bookingState.doctorId = card.dataset.doctorId;
-                        bookingState.doctorName = card.dataset.doctorName;
-                        doctorCards.forEach(c => c.classList.remove('selected'));
-                        card.classList.add('selected');
-                        selectedDoctorNameEl.textContent = bookingState.doctorName;
-                        step1.style.opacity = '0.5';
-                        step2.classList.remove('hidden');
-                        step3.classList.add('hidden');
-                    });
-                });
-
-                timeSlots.forEach(slot => {
-                    slot.addEventListener('click', () => {
-                        if (!datePicker.value) { alert('Please select a date first.'); return; }
-                        bookingState.date = datePicker.value;
-                        bookingState.time = slot.textContent;
-                        timeSlots.forEach(s => s.classList.remove('selected'));
-                        slot.classList.add('selected');
-                        confirmDoctorEl.textContent = bookingState.doctorName;
-                        confirmDateEl.textContent = new Date(bookingState.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        confirmTimeEl.textContent = bookingState.time;
-                        step2.style.opacity = '0.5';
-                        step3.classList.remove('hidden');
-                    });
-                });
-
-                backButton.addEventListener('click', () => {
-                    step3.classList.add('hidden');
-                    step2.style.opacity = '1';
-                });
-
-                confirmBookingButton.addEventListener('click', () => {
-                    confirmBookingButton.disabled = true;
-                    confirmBookingButton.textContent = 'Booking...';
-
-                    fetch('/api/book-appointment/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': csrfToken
-                        },
-                        body: JSON.stringify(bookingState)
-                    })
-                    .then(response => {
-                        if (response.ok) { return response.json(); }
-                        throw new Error('Server responded with an error.');
-                    })
-                    .then(data => {
-                        alert('Booking Confirmed! A confirmation email has been sent.');
-                        window.location.reload();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Failed to book appointment. Please try again.');
-                        confirmBookingButton.disabled = false;
-                        confirmBookingButton.textContent = 'Confirm Booking';
-                    });
-                });
-            };
-
-            // Initialize both features
-            initMap();
-            initBooking();
-        });
-    </script>
+    <!-- All JavaScript is now loaded from an external file -->
+    <script src="{% static 'js/main.js' %}" defer></script>
 
 </body>
 </html>
