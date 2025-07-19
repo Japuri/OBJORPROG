@@ -1,0 +1,39 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Transfer Patient - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="bg-white p-8 rounded-2xl shadow-xl">
+        <div class="border-b pb-4 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Transfer Patient</h1>
+            <p class="text-gray-600 mt-1">Transferring: <span class="font-semibold">{{ admission.patient.username }}</span></p>
+            <p class="text-sm text-gray-500 mt-2">Currently assigned to: Dr. {{ admission.assigned_doctor.name }}</p>
+        </div>
+
+        <form method="POST" action="{% url 'transfer_patient' admission.id %}" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label for="doctor_id" class="block text-sm font-medium text-gray-700">Transfer to New Doctor</label>
+                <select id="doctor_id" name="doctor_id" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="" disabled selected>Select a new doctor...</option>
+                    {% for doctor in doctors %}
+                        <option value="{{ doctor.id }}">{{ doctor.name }} - ({{ doctor.specialty }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex justify-end gap-4 pt-4">
+                <a href="{% url 'current_admissions' %}" class="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg font-semibold hover:bg-gray-300">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-yellow-500 text-white py-2 px-6 rounded-lg font-semibold hover:bg-yellow-600 shadow-md">
+                    Confirm Transfer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

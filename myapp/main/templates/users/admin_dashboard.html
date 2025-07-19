@@ -1,0 +1,60 @@
+<!-- FILE: users/templates/users/admin_dashboard.html -->
+
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - HAUspital{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="bg-white p-8 rounded-2xl shadow-xl">
+        <div class="flex justify-between items-center border-b pb-4 mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+                <p class="text-gray-600 mt-1">Welcome, {{ user.username }}.</p>
+            </div>
+            <a href="{% url 'admin:index' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700 shadow-sm">
+                Advanced Admin
+            </a>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Total Patients Card -->
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 class="text-sm font-medium text-gray-500">Total Patients</h3>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ patient_count }}</p>
+            </div>
+            <!-- Total Doctors Card -->
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 class="text-sm font-medium text-gray-500">Total Doctors</h3>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ doctor_count }}</p>
+            </div>
+            <!-- Appointments Today Card -->
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 class="text-sm font-medium text-gray-500">Appointments Today</h3>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ appointments_today_count }}</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <a href="{% url 'manage_patients' %}" class="bg-blue-500 text-white p-6 rounded-lg font-semibold text-center hover:bg-blue-600 transition-colors">
+                    Manage Patients
+                </a>
+                <!-- This link now goes directly to the Django admin page for adding a new Doctor -->
+                <a href="{% url 'admin:main_doctor_add' %}" class="bg-green-500 text-white p-6 rounded-lg font-semibold text-center hover:bg-green-600 transition-colors">
+                    Add New Doctor
+                </a>
+                <a href="{% url 'current_admissions' %}" class="bg-yellow-500 text-white p-6 rounded-lg font-semibold text-center hover:bg-yellow-600 transition-colors">
+                    View Admissions
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

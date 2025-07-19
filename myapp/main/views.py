@@ -1,6 +1,6 @@
 # myapp/main/views.py
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 # --- Add these imports for the API ---
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -94,6 +94,26 @@ def upload_lab_result(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)
 
 
+def home(request):
+    """
+    Renders the main front page for patients and guests,
+    or redirects admins and doctors to their dashboards.
+    """
+    # --- THIS IS THE CRITICAL LOGIC ---
+    if request.user.is_authenticated and hasattr(request.user, 'profile'):
+        if request.user.profile.role == 'admin':
+            # If a logged-in admin tries to visit the home page,
+            # send them to the admin dashboard instead.
+            return redirect('admin_dashboard')
+        elif request.user.profile.role == 'doctor':
+            # Do the same for doctors.
+            return redirect('doctor_dashboard')
+    # --- END OF LOGIC ---
+
+    # Patients and non-logged-in users will see the regular home page as normal.
+    # ... (the rest of your home view logic) ...
+    return render(request, 'main/index.html')
+
 # myapp/main/views.py
 
 # ... (keep all your other views like home, book_appointment_api, etc.)
@@ -108,3 +128,19 @@ def lab_results_view(request):
         'user_lab_results': user_results
     }
     return render(request, 'main/lab_results.html', context)
+
+
+@login_required
+def manage_patients_view(request):
+    # Security check to ensure only admins can access this page
+    if not (hasattr(request.user, 'profile') and request.user.profile.role == 'admin'):
+        messages.error(request, 'You do not have permission to view this page.')
+        return redirect('home')
+
+    # Fetch all profiles with the role of 'patient'
+    patient_profiles = Profile.objects.filter(role='patient').order_by('user__username')
+
+    context = {
+        'patients': patient_profiles
+    }
+    return render(request, 'users/manage_patients.html', context)
