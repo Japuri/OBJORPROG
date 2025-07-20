@@ -287,3 +287,109 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Error initializing booking form:", e);
     }
 });
+
+
+// ... (keep your existing mobile menu, initMap, and initBooking functions)
+
+// Main script, runs after the page is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const isAuthenticated = document.body.dataset.isAuthenticated === 'true';
+    if (!isAuthenticated) return;
+
+    // ... (initMap and initBooking functions)
+
+    // --- 3. UPDATED: AI CHAT ASSISTANT LOGIC ---
+    const initAIChat = () => {
+        const chatBubble = document.getElementById('ai-chat-bubble');
+        const chatWindow = document.getElementById('ai-chat-window');
+        const closeChatButton = document.getElementById('close-chat-button');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const csrfToken = document.getElementById('csrf_token_input').value;
+
+        if (!chatBubble) return;
+
+        const toggleChatWindow = () => {
+            chatWindow.classList.toggle('visible');
+        };
+
+        chatBubble.addEventListener('click', toggleChatWindow);
+        closeChatButton.addEventListener('click', toggleChatWindow);
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return;
+
+            appendMessage(userMessage, 'user');
+            chatInput.value = '';
+            appendMessage('...', 'ai', true); // Show a "typing" indicator
+
+            // --- UPDATED: Send message to the Django backend ---
+            fetch('/api/ai-chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ message: userMessage })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.reply) {
+                    updateTypingIndicator(data.reply);
+                } else {
+                    updateTypingIndicator('Sorry, an error occurred.');
+                }
+            })
+            .catch(error => {
+                console.error('AI Chat Error:', error);
+                updateTypingIndicator('Sorry, I was unable to connect. Please try again later.');
+            });
+        });
+
+        const appendMessage = (text, sender, isTyping = false) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}-message`;
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'chat-bubble';
+            bubbleDiv.textContent = text;
+
+            if (isTyping) {
+                bubbleDiv.id = 'typing-indicator';
+            }
+
+            messageDiv.appendChild(bubbleDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
+
+        const updateTypingIndicator = (text) => {
+            const typingBubble = document.getElementById('typing-indicator');
+            if (typingBubble) {
+                typingBubble.textContent = text;
+                typingBubble.id = '';
+            }
+        };
+    };
+
+    // Initialize all features safely
+    try {
+        initMap();
+    } catch (e) {
+        console.error("Error initializing map:", e);
+    }
+    try {
+        initBooking();
+    } catch (e) {
+        console.error("Error initializing booking form:", e);
+    }
+    try {
+        initAIChat();
+    } catch (e) {
+        console.error("Error initializing AI Chat:", e);
+    }
+});
+

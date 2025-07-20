@@ -3,64 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- The title will be inherited or overridden by child templates -->
     <title>{% block title %}HAUspital{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-    <!-- This block allows child templates like index.html to add extra head content (like Leaflet CSS/JS) -->
     {% block head_extra %}{% endblock %}
+
+    <!-- Styles for the AI Chat Assistant -->
+    <style>
+        #ai-chat-bubble {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: #4f46e5; /* bg-indigo-600 */
+            color: white;
+            width: 4rem;
+            height: 4rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+            z-index: 1000;
+        }
+        #ai-chat-bubble:hover {
+            transform: scale(1.1);
+        }
+        #ai-chat-window {
+            position: fixed;
+            bottom: 7rem;
+            right: 2rem;
+            width: 90%;
+            max-width: 400px;
+            height: 500px;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(20px);
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1000;
+        }
+        #ai-chat-window.visible {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        #chat-messages {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+        .chat-message {
+            margin-bottom: 1rem;
+            display: flex;
+        }
+        .user-message .chat-bubble {
+            background-color: #4f46e5; /* bg-indigo-600 */
+            color: white;
+            border-bottom-right-radius: 0;
+        }
+        .ai-message .chat-bubble {
+            background-color: #e5e7eb; /* bg-gray-200 */
+            color: #1f2937; /* text-gray-800 */
+            border-bottom-left-radius: 0;
+        }
+        .chat-bubble {
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            max-width: 80%;
+        }
+        .user-message {
+            justify-content: flex-end;
+        }
+    </style>
 </head>
 <body class="antialiased bg-gray-50" data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
     <input type="hidden" name="csrfmiddlewaretoken" id="csrf_token_input" value="{{ csrf_token }}">
 
-   <!-- In myapp/main/templates/main/base.html -->
-<nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24 rounded-b-xl">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-700 hover:text-indigo-900">HAUspital</a>
-
-        <!-- UPDATED ROLE-BASED NAVIGATION -->
-        <div class="hidden md:flex space-x-8 items-center">
-            {% if user.is_authenticated %}
-                {% if user.profile.role == 'admin' %}
-                    <!-- Admin Links -->
-                    <a href="{% url 'admin_dashboard' %}" class="text-indigo-700 hover:text-indigo-900 font-bold">Dashboard</a>
-                    <a href="{% url 'manage_patients' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Manage Patients</a>
-                    <a href="{% url 'admin:index' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Advanced Admin</a>
-                {% elif user.profile.role == 'doctor' %}
-                    <!-- Doctor Links -->
-                    <a href="{% url 'doctor_dashboard' %}" class="text-indigo-700 hover:text-indigo-900 font-bold">Dashboard</a>
-                    <a href="#" class="text-gray-600 hover:text-indigo-700 font-medium">My Patients</a>
+    <nav class="bg-white shadow-md py-4 px-6 md:px-12 lg:px-24 rounded-b-xl">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-700 hover:text-indigo-900">HAUspital</a>
+            <div class="hidden md:flex space-x-8 items-center">
+                {% if user.is_authenticated %}
+                    {% if user.profile.role == 'admin' %}
+                        <!-- Admin Links -->
+                        <a href="{% url 'admin_dashboard' %}" class="text-indigo-700 hover:text-indigo-900 font-bold">Dashboard</a>
+                        <a href="{% url 'manage_patients' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Manage Patients</a>
+                        <a href="{% url 'admin:index' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Advanced Admin</a>
+                    {% elif user.profile.role == 'doctor' %}
+                        <!-- Doctor Links -->
+                        <a href="{% url 'doctor_dashboard' %}" class="text-indigo-700 hover:text-indigo-900 font-bold">Dashboard</a>
+                        <a href="#" class="text-gray-600 hover:text-indigo-700 font-medium">My Patients</a>
+                    {% else %}
+                        <!-- Patient Links -->
+                        <a href="{% url 'home' %}" class="text-indigo-700 hover:text-indigo-900 font-bold">Home</a>
+                        <a href="{% url 'features' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Features</a>
+                        <a href="{% url 'about' %}" class="text-gray-600 hover:text-indigo-700 font-medium">About</a>
+                        <a href="{% url 'profile_dashboard' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Profile</a>
+                        <a href="{% url 'lab_results' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Lab Results</a>
+                    {% endif %}
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 shadow-md">Logout</button>
+                    </form>
                 {% else %}
-                    <!-- Patient Links -->
-                    <a href="{% url 'home' %}" class="text-indigo-700 hover:text-indigo-900 font-bold">Home</a>
+                    <!-- Logged-out Links -->
+                    <a href="{% url 'home' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Home</a>
                     <a href="{% url 'features' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Features</a>
                     <a href="{% url 'about' %}" class="text-gray-600 hover:text-indigo-700 font-medium">About</a>
-                    <a href="{% url 'profile_dashboard' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Profile</a>
-                    <a href="{% url 'lab_results' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Lab Results</a>
+                    <a href="{% url 'login' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Login</a>
+                    <a href="{% url 'register' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700 shadow-md">Sign Up</a>
                 {% endif %}
-
-                <!-- Logout is common to all logged-in users -->
-                <form action="{% url 'logout' %}" method="post" class="inline">
+            </div>
+            <button class="md:hidden text-gray-600 hover:text-indigo-700" id="mobileMenuButton">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+        <!-- UPDATED: Mobile Menu Content Restored -->
+        <div class="md:hidden mt-4 space-y-2 px-4 py-2 bg-gray-50 rounded-lg shadow-sm hidden" id="mobileMenu">
+            {% if user.is_authenticated %}
+                {% if user.profile.role == 'admin' %}
+                    <a href="{% url 'admin_dashboard' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Dashboard</a>
+                    <a href="{% url 'manage_patients' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Manage Patients</a>
+                    <a href="{% url 'admin:index' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Advanced Admin</a>
+                {% elif user.profile.role == 'doctor' %}
+                    <a href="{% url 'doctor_dashboard' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Dashboard</a>
+                    <a href="#" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">My Patients</a>
+                {% else %}
+                    <a href="{% url 'home' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Home</a>
+                    <a href="{% url 'features' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Features</a>
+                    <a href="{% url 'about' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">About</a>
+                    <a href="{% url 'profile_dashboard' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Profile</a>
+                    <a href="{% url 'lab_results' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Lab Results</a>
+                {% endif %}
+                <form action="{% url 'logout' %}" method="post" class="block">
                     {% csrf_token %}
-                    <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 shadow-md">Logout</button>
+                    <button type="submit" class="w-full text-left bg-red-500 text-white py-2 px-3 rounded-md font-semibold hover:bg-red-600">
+                        Logout
+                    </button>
                 </form>
             {% else %}
-                <!-- Logged-out Links -->
-                <a href="{% url 'home' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Home</a>
-                <a href="{% url 'features' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Features</a>
-                <a href="{% url 'about' %}" class="text-gray-600 hover:text-indigo-700 font-medium">About</a>
-                <a href="{% url 'login' %}" class="text-gray-600 hover:text-indigo-700 font-medium">Login</a>
-                <a href="{% url 'register' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700 shadow-md">Sign Up</a>
+                <a href="{% url 'home' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Home</a>
+                <a href="{% url 'features' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Features</a>
+                <a href="{% url 'about' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">About</a>
+                <a href="{% url 'login' %}" class="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Login</a>
+                <a href="{% url 'register' %}" class="block bg-indigo-600 text-white py-2 px-3 rounded-md font-semibold hover:bg-indigo-700 shadow-md">
+                    Sign Up
+                </a>
             {% endif %}
         </div>
-        <!-- Remember to update the mobile menu as well -->
-    </div>
-</nav>
+    </nav>
 
     <main>
         {% block content %}
-        <!-- The content from other templates like index.html or lab_results.html will be inserted here -->
+        <!-- The content from other templates will be inserted here -->
         {% endblock %}
     </main>
 
@@ -69,6 +173,7 @@
             <p>© 2025 HAUspital. All rights reserved.</p>
         </div>
     </footer>
+
 
     <!-- The main JS file is loaded here -->
     <script src="{% static 'js/main.js' %}" defer></script>

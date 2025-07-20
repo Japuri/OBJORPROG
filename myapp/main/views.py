@@ -8,6 +8,14 @@ from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
 import json
 from .models import LabResult  # <-- Import the new LabResult model
+from django.conf import settings
+
+import json
+# --- This safely imports the 'requests' library ---
+try:
+    import requests
+except ImportError:
+    requests = None
 
 
 # --- Your Existing Views ---
@@ -144,3 +152,83 @@ def manage_patients_view(request):
         'patients': patient_profiles
     }
     return render(request, 'users/manage_patients.html', context)
+
+
+@login_required
+def ai_chat_api(request):
+    # --- Check if the 'requests' library is installed ---
+    if requests is None:
+        error_message = "The 'requests' library is not installed on the server. Please run 'pip install requests' in your terminal and restart the server."
+        return JsonResponse({'reply': error_message, 'error': True})
+    # -----------------------------------------------------------
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
+    try:
+        data = json.loads(request.body)
+        user_message = data.get('message', '')
+
+        # --- AI LOGIC USING GEMINI API ---
+        api_key = settings.GEMINI_API_KEY
+        # CORRECTED: This now checks for the placeholder text, which is more reliable.
+        if not api_key or 'YOUR_GEMINI_API_KEY_HERE' in api_key:
+            return JsonResponse({'reply': "AI API key is not configured in settings.py."})
+
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+
+        # This prompt gives the AI its personality and instructions
+        prompt = f"""
+        You are "HAUspital AI", a friendly and helpful assistant for the HAUspital web platform.
+        Your primary goal is to assist users. You must follow these rules:
+        1.  If asked for medical advice or to diagnose symptoms, you MUST provide a disclaimer that you are an AI and not a medical professional, and that the user should consult a real doctor. You can then provide basic, safe, public-knowledge first aid suggestions.
+        2.  If asked about the platform (e.g., "how to book an appointment"), guide them on how to use the website's features.
+        3.  For general questions, be a helpful and concise assistant.
+
+        User's question: "{user_message}"
+        """
+
+        payload = {
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": prompt}]
+            }]
+        }
+
+        response = requests.post(api_url, json=payload, timeout=15)  # Added a timeout
+
+        # --- IMPROVED ERROR HANDLING ---
+        if response.status_code != 200:
+            try:
+                error_data = response.json()
+                error_message = error_data.get('error', {}).get('message', 'An unknown API error occurred.')
+                return JsonResponse({'reply': f"Error from AI Service: {error_message}"})
+            except json.JSONDecodeError:
+                return JsonResponse({
+                                        'reply': f"Error from AI Service: Received an invalid response (Status code: {response.status_code})."})
+
+        result = response.json()
+
+        # --- Safely access the response text ---
+        if 'candidates' in result and result.get('candidates'):
+            ai_response = result['candidates'][0]['content']['parts'][0]['text']
+        else:
+            error_info = result.get('error', {}).get('message', 'The AI service returned an unexpected response.')
+            ai_response = f"I'm sorry, I couldn't generate a response. Details: {error_info}"
+
+        return JsonResponse({'reply': ai_response.strip()})
+
+    except requests.exceptions.RequestException as e:
+        # This will catch network errors (like no internet) or timeouts
+        error_details = str(e)
+        if e.response:
+            try:
+                error_details = e.response.json().get('error', {}).get('message', str(e))
+            except json.JSONDecodeError:
+                error_details = e.response.text
+        return JsonResponse(
+            {'reply': f"Sorry, there was an error connecting to the AI service: {error_details}", 'error': True})
+    except Exception as e:
+        # This will catch any other unexpected errors in the code
+        return JsonResponse({'reply': f"An unexpected error occurred on the server: {str(e)}"}, status=500)
+

@@ -13,4 +13,6 @@ urlpatterns = [
     path('api/upload-result/', views.upload_lab_result, name='upload_lab_result_api'),
 
     path('lab-results/', views.lab_results_view, name='lab_results'),
+
+    path('api/ai-chat/', views.ai_chat_api, name='ai_chat_api'),
 ]

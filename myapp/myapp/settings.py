@@ -144,3 +144,6 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'hauspitalscheduler@@gmail.com'  # <-- IMPORTANT: Your full Gmail address
 EMAIL_HOST_PASSWORD = 'rwcd ngvg rvko cyyc' # <-- IMPORTANT: Your 16-digit App Password
+
+
+GEMINI_API_KEY = 'AIzaSyCcLXR7cd6rO_FolZ89P5vcuwv5IBrfKuY'

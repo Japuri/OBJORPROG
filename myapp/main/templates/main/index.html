@@ -15,6 +15,66 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
 
+    <!-- Styles for the AI Chat Assistant -->
+    <style>
+        #ai-chat-bubble {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: #4f46e5; /* bg-indigo-600 */
+            color: white;
+            width: 4rem;
+            height: 4rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+            z-index: 1000;
+        }
+        #ai-chat-bubble:hover {
+            transform: scale(1.1);
+        }
+        #ai-chat-window {
+            position: fixed;
+            bottom: 7rem;
+            right: 2rem;
+            width: 90%;
+            max-width: 400px;
+            height: 500px;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(20px);
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1000;
+        }
+        #ai-chat-window.visible {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        #chat-messages {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+        .chat-message { margin-bottom: 1rem; display: flex; }
+        .user-message .chat-bubble { background-color: #4f46e5; color: white; border-bottom-right-radius: 0; }
+        .ai-message .chat-bubble { background-color: #e5e7eb; color: #1f2937; border-bottom-left-radius: 0; }
+        .chat-bubble { padding: 0.75rem 1rem; border-radius: 1rem; max-width: 80%; }
+        .user-message { justify-content: flex-end; }
+    </style>
+
+
    <style>
     /* --- Styles for Map Section --- */
     .map-layout-container {
@@ -154,6 +214,8 @@
 
     <div class="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {% if user.is_authenticated %}
+            <!-- All content for logged-in users goes inside this block -->
+
             <!-- SECTION 1: HOSPITALS NEAR YOU -->
             <section class="mb-24">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8">Hospitals Near You</h2>
@@ -180,8 +242,8 @@
                         </div>
                         <button id="show-all-doctors" class="hidden bg-slate-600 text-white text-sm font-semibold py-2 px-4 rounded-lg hover:bg-slate-500">Show All Doctors</button>
                     </div>
-                    <!-- Booking steps content... -->
-                     <div id="step1" class="step-container">
+                    <!-- Step 1: Select Specialty & Doctor -->
+                    <div id="step1" class="step-container">
                         <div class="mb-6">
                             <label for="specialty" class="block text-sm font-medium text-slate-300 mb-2">Filter by Specialty:</label>
                             <select id="specialty" name="specialty" class="dark-input w-full md:w-1/2 p-2 border rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
@@ -201,6 +263,9 @@
                             <!-- Doctors List -->
                             <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="Angeles University Foundation Medical Center" data-specialty="cardiology" data-doctor-id="1" data-doctor-name="Dr. John Doe">
                                 <h3 class="font-bold text-lg">Dr. John Doe</h3>
+                            </div>
+                            <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="pediatrics" data-doctor-id="2" data-doctor-name="Dr. Jane Smith">
+                                <h3 class="font-bold text-lg">Dr. Jane Smith</h3>
                             </div>
                             <div class="doctor-card-dark text-white rounded-lg p-4 cursor-pointer" data-hospital-name="The Medical City Clark" data-specialty="pediatrics" data-doctor-id="2" data-doctor-name="Dr. Jane Smith">
                                 <h3 class="font-bold text-lg">Dr. Jane Smith</h3>
@@ -260,10 +325,8 @@
                                 <h3 class="font-bold text-lg">Dr. Noah Villanueva</h3>
                             </div>
                         </div>
-
                     </div>
-                    </div>
-                   <!-- Step 2: Select Date & Time (Initially Hidden) -->
+                    <!-- Step 2: Select Date & Time (Initially Hidden) -->
                     <div id="step2" class="step-container mt-8 hidden">
                         <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 2: Select Date & Time</h2>
                         <p class="mb-4 text-slate-300">Available slots for <strong id="selectedDoctorName" class="text-indigo-400"></strong>:</p>
@@ -276,7 +339,6 @@
                             <div class="time-slot-dark text-slate-200 rounded-lg p-3 text-center cursor-pointer">11:00 AM</div>
                         </div>
                     </div>
-
                     <!-- Step 3: Confirmation (Initially Hidden) -->
                     <div id="step3" class="step-container mt-8 hidden">
                         <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 3: Confirm Your Booking</h2>
@@ -297,56 +359,9 @@
                 </div>
             </section>
 
-            <!-- ADDED SECTION 3: LAB RESULTS UPLOAD -->
-            <section id="lab-results-section" class="mb-12">
-                <div class="bg-white p-8 rounded-2xl shadow-xl">
-                    <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-6 border-b pb-4">My Lab Results</h1>
-
-                    <!-- Upload Form -->
-                    <div class="mb-12">
-                        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Upload a New Document</h2>
-                        <form id="upload-form" class="space-y-4 p-6 bg-gray-50 rounded-lg border">
-                            {% csrf_token %}
-                            <div>
-                                <label for="description" class="block text-sm font-medium text-gray-700">Description (e.g., "Blood Test Results - July 2025")</label>
-                                <input type="text" name="description" id="description" class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label for="document" class="block text-sm font-medium text-gray-700">Select File (PDF, JPG, PNG)</label>
-                                <input type="file" name="document" id="document" required class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-                            </div>
-                            <div>
-                                <button type="submit" id="upload-button" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 shadow-md">
-                                    Upload File
-                                </button>
-                            </div>
-                        </form>
-                        <div id="upload-status" class="mt-4 text-center"></div>
-                    </div>
-                    <!-- List of Uploaded Files -->
-                    <div>
-                        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Uploaded Documents</h2>
-                        <div id="uploaded-files-list" class="space-y-3">
-                            {% if user_lab_results %}
-                                {% for result in user_lab_results %}
-                                    <div class="bg-gray-50 p-4 rounded-lg flex justify-between items-center border">
-                                        <div>
-                                            <p class="font-semibold text-gray-800">{{ result.description|default:result.document.name }}</p>
-                                            <p class="text-sm text-gray-500">Uploaded on: {{ result.uploaded_at|date:"F d, Y" }}</p>
-                                        </div>
-                                        <a href="{{ result.document.url }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-semibold">View File</a>
-                                    </div>
-                                {% endfor %}
-                            {% else %}
-                                <p class="text-gray-500">You have not uploaded any lab results yet.</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </section>
 
         {% else %}
-            <!-- Logged-out users see the "Why Choose Us" section -->
+            <!-- This block is now ONLY for logged-out users -->
             <section class="mb-12">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-10">Why Choose HAUspital?</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -358,11 +373,43 @@
         {% endif %}
     </div>
 
+
+        {% if user.is_authenticated %}
+    <div id="ai-chat-bubble">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5z" clip-rule="evenodd" fill-rule="evenodd" opacity=".2"/>
+            <path d="M2 7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7zm5 4a1 1 0 11-2 0 1 1 0 012 0zm4 0a1 1 0 11-2 0 1 1 0 012 0zm4 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+        </svg>
+    </div>
+
+    <div id="ai-chat-window">
+        <div class="p-4 border-b bg-white flex justify-between items-center">
+            <h3 class="font-bold text-lg text-gray-800">AI Assistant</h3>
+            <button id="close-chat-button" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+        </div>
+        <div id="chat-messages">
+            <div class="chat-message ai-message">
+                <div class="chat-bubble">
+                    Hello! How can I help you today?
+                </div>
+            </div>
+        </div>
+        <div class="p-4 bg-white border-t">
+            <form id="chat-form" class="flex gap-2">
+                <input type="text" id="chat-input" placeholder="Type your message..." class="flex-grow p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500" autocomplete="off">
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700">Send</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+
     <footer class="bg-gray-800 text-gray-300 py-8 mt-12">
         <div class="max-w-7xl mx-auto text-center px-4 sm:px-6 lg:px-8">
             <p>© 2025 HAUspital. All rights reserved.</p>
         </div>
     </footer>
+
 
     <!-- All JavaScript is now loaded from an external file -->
     <script src="{% static 'js/main.js' %}" defer></script>
