@@ -35,11 +35,19 @@ urlpatterns = [
 
     path('discharge-patient/<int:admission_id>/', views.discharge_patient_view, name='discharge_patient'),
 
+    # users/urls.py
+    path('manage-doctors/', views.manage_doctors_view, name='manage_doctors'),
+
     # --- ADD THIS NEW URL FOR THE TRANSFER ACTION ---
     path('transfer-patient/<int:admission_id>/', views.transfer_patient_view, name='transfer_patient'),path('discharge-patient/<int:admission_id>/', views.discharge_patient_view, name='discharge_patient'),
 
     # --- ADD THIS NEW URL FOR THE TRANSFER ACTION ---
     path('transfer-patient/<int:admission_id>/', views.transfer_patient_view, name='transfer_patient'),
+
+    path('add-doctor/', views.add_doctor_view, name='add_doctor'),
+
+    path('edit-doctor/<int:doctor_id>/', views.edit_doctor_view, name='edit_doctor'),
+    path('delete-doctor/<int:doctor_id>/', views.delete_doctor_view, name='delete_doctor'),
     # ---------------------------------------------
 
     # Django's built-in password reset views (optional, but good to have)

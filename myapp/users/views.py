@@ -12,6 +12,8 @@ from .forms import UserRegisterForm, UserLoginForm, ProfileUpdateForm
 from .models import Profile
 from main.models import LabResult, Appointment, Doctor, Admission
 from main.models import Admission
+from main.models import Doctor
+from main.forms import DoctorForm
 
 
 def register(request):
@@ -349,3 +351,83 @@ def transfer_patient_view(request, admission_id):
         'doctors': doctors
     }
     return render(request, 'users/transfer_patient.html', context)
+
+
+@login_required
+def manage_doctors_view(request):
+    # Security check to ensure only admins can access this page
+    if not (hasattr(request.user, 'profile') and request.user.profile.role == 'admin'):
+        messages.error(request, 'You do not have permission to view this page.')
+        return redirect('home')
+
+    # Fetch all doctor objects from the database
+    doctors = Doctor.objects.all().order_by('name')
+    
+    context = {
+        'doctors': doctors
+    }
+    return render(request, 'users/manage_doctors.html', context)
+
+
+@login_required
+def add_doctor_view(request):
+    # Security check for admin role
+    if not (hasattr(request.user, 'profile') and request.user.profile.role == 'admin'):
+        messages.error(request, 'You do not have permission to perform this action.')
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = DoctorForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'New doctor has been added successfully.')
+            return redirect('manage_doctors')
+    else:
+        form = DoctorForm()
+    
+    context = {
+        'form': form
+    }
+    return render(request, 'users/add_doctor.html', context)
+
+
+@login_required
+def edit_doctor_view(request, doctor_id):
+    # Security check for admin role
+    if not (hasattr(request.user, 'profile') and request.user.profile.role == 'admin'):
+        messages.error(request, 'You do not have permission to perform this action.')
+        return redirect('home')
+
+    doctor = get_object_or_404(Doctor, id=doctor_id)
+    if request.method == 'POST':
+        form = DoctorForm(request.POST, instance=doctor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Details for Dr. {doctor.name} have been updated.')
+            return redirect('manage_doctors')
+    else:
+        form = DoctorForm(instance=doctor)
+
+    context = {
+        'form': form,
+        'doctor': doctor
+    }
+    return render(request, 'users/edit_doctor.html', context)
+
+
+@login_required
+def delete_doctor_view(request, doctor_id):
+    # Security check for admin role
+    if not (hasattr(request.user, 'profile') and request.user.profile.role == 'admin'):
+        messages.error(request, 'You do not have permission to perform this action.')
+        return redirect('home')
+
+    doctor = get_object_or_404(Doctor, id=doctor_id)
+    if request.method == 'POST':
+        doctor_name = doctor.name
+        doctor.delete()
+        messages.success(request, f'Dr. {doctor_name} has been deleted from the system.')
+        return redirect('manage_doctors')
+
+    # If GET request, redirect back as deletion should only happen via POST
+    return redirect('manage_doctors')

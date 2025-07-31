@@ -5,18 +5,18 @@
 
 {% block content %}
 <div class="w-full max-w-2xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    <div class="bg-white p-8 rounded-2xl shadow-xl">
-        <div class="border-b pb-4 mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">Admit Patient</h1>
-            <p class="text-gray-600 mt-1">Admitting: <span class="font-semibold">{{ patient.username }}</span></p>
+    <div class="bg-gray-900/70 backdrop-blur-md border border-indigo-500/20 p-8 rounded-2xl shadow-xl">
+        <div class="border-b border-gray-700 pb-4 mb-6">
+            <h1 class="text-3xl font-bold text-white">Admit Patient</h1>
+            <p class="text-gray-400 mt-1">Admitting: <span class="font-semibold text-cyan-400">{{ patient.username }}</span></p>
         </div>
 
         <form method="POST" action="{% url 'admit_patient' patient.id %}" class="space-y-6">
             {% csrf_token %}
 
             <div>
-                <label for="admission_type" class="block text-sm font-medium text-gray-700">Admission Type</label>
-                <select id="admission_type" name="admission_type" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                <label for="admission_type" class="block text-sm font-medium text-gray-300">Admission Type</label>
+                <select id="admission_type" name="admission_type" required class="mt-1 block w-full bg-gray-700 border border-gray-600 text-white rounded-lg shadow-sm p-3 focus:ring-cyan-500 focus:border-cyan-500">
                     <option value="" disabled selected>Select an admission type...</option>
                     <option value="Emergency">Emergency</option>
                     <option value="Outpatient">Outpatient</option>
@@ -25,8 +25,8 @@
             </div>
 
             <div>
-                <label for="doctor_id" class="block text-sm font-medium text-gray-700">Assign Doctor</label>
-                <select id="doctor_id" name="doctor_id" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                <label for="doctor_id" class="block text-sm font-medium text-gray-300">Assign Doctor</label>
+                <select id="doctor_id" name="doctor_id" required class="mt-1 block w-full bg-gray-700 border border-gray-600 text-white rounded-lg shadow-sm p-3 focus:ring-cyan-500 focus:border-cyan-500">
                     <option value="" disabled selected>Select a doctor...</option>
                     {% for doctor in doctors %}
                         <option value="{{ doctor.id }}">{{ doctor.name }} - ({{ doctor.specialty }})</option>
@@ -35,10 +35,10 @@
             </div>
 
             <div class="flex justify-end gap-4 pt-4">
-                <a href="{% url 'manage_patients' %}" class="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg font-semibold hover:bg-gray-300">
+                <a href="{% url 'manage_patients' %}" class="bg-gray-600 text-gray-200 py-2 px-6 rounded-lg font-semibold hover:bg-gray-500 transition-colors duration-200">
                     Cancel
                 </a>
-                <button type="submit" class="bg-green-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-green-700 shadow-md">
+                <button type="submit" class="bg-green-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-green-700 shadow-md transition-colors duration-200">
                     Admit Patient & Send Email
                 </button>
             </div>
