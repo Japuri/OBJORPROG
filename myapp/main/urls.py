@@ -15,4 +15,8 @@ urlpatterns = [
     path('lab-results/', views.lab_results_view, name='lab_results'),
 
     path('api/ai-chat/', views.ai_chat_api, name='ai_chat_api'),
+
+    path('api/explain-result/<int:result_id>/', views.explain_lab_result_api, name='explain_lab_result_api'),
+
+    path('api/analyze-document/', views.analyze_document_api, name='analyze_document_api'),
 ]

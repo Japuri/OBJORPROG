@@ -1,102 +1,95 @@
-{% extends 'main/base.html' %} <!-- This assumes you have a base.html template -->
+{% extends 'main/base.html' %}
 {% load static %}
 
-{% block title %}My Lab Results - HAUspital{% endblock %}
+{% block title %}Analyze Lab Results - HAUspital{% endblock %}
 
 {% block content %}
 <div class="w-full max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
     <div class="bg-white p-8 rounded-2xl shadow-xl">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-6 border-b pb-4">My Lab Results</h1>
+        <div class="border-b pb-4 mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Analyze Lab Results</h1>
+            <p class="text-gray-600 mt-2">Upload a PDF of your lab results to get a simple, AI-powered explanation of the medical terms. <strong class="text-red-600">Your document will not be saved.</strong></p>
+        </div>
 
-        <!-- SECTION 1: UPLOAD NEW RESULT -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Upload a New Document</h2>
-
-            <form id="upload-form" class="space-y-4 p-6 bg-gray-50 rounded-lg border">
-                {% csrf_token %}
+        <!-- Disclaimer -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+            <div class="flex">
                 <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700">Description (e.g., "Blood Test Results - July 2025")</label>
-                    <input type="text" name="description" id="description" class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <p class="text-sm text-yellow-700">
+                        This tool is for informational purposes only and is **not a substitute for professional medical advice**. Always consult with your doctor.
+                    </p>
                 </div>
-                <div>
-                    <label for="document" class="block text-sm font-medium text-gray-700">Select File (PDF, JPG, PNG)</label>
-                    <input type="file" name="document" id="document" required class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-                </div>
-                <div>
-                    <button type="submit" id="upload-button" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 shadow-md">
-                        Upload File
-                    </button>
-                </div>
-            </form>
-            <div id="upload-status" class="mt-4 text-center"></div>
-        </section>
-
-        <!-- SECTION 2: VIEW UPLOADED RESULTS -->
-        <section>
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Uploaded Documents</h2>
-            <div id="results-list" class="space-y-3">
-                {% if user_lab_results %}
-                    {% for result in user_lab_results %}
-                        <div class="bg-gray-50 p-4 rounded-lg flex justify-between items-center border">
-                            <div>
-                                <p class="font-semibold text-gray-800">{{ result.description|default:result.document.name }}</p>
-                                <p class="text-sm text-gray-500">Uploaded on: {{ result.uploaded_at|date:"F d, Y" }}</p>
-                            </div>
-                            <a href="{{ result.document.url }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-semibold">View File</a>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-gray-500">You have not uploaded any lab results yet.</p>
-                {% endif %}
             </div>
-        </section>
+        </div>
+
+        <!-- Analyzer Form -->
+        <form id="analyze-form" class="space-y-4 p-6 bg-gray-50 rounded-lg border">
+            {% csrf_token %}
+            <div>
+                <label for="document" class="block text-sm font-medium text-gray-700">Select File (PDF only)</label>
+                <input type="file" name="document" id="document" required accept=".pdf" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+            </div>
+            <div>
+                <button type="submit" id="analyze-button" class="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 shadow-md">
+                    Analyze Document
+                </button>
+            </div>
+        </form>
+        
+        <!-- AI Explanation Result Area -->
+        <div id="explanation-container" class="hidden mt-8 pt-6 border-t">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">AI Explanation</h2>
+            <div id="explanation-body" class="p-6 bg-gray-50 rounded-lg border prose max-w-none">
+                <!-- AI response will be inserted here -->
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const uploadForm = document.getElementById('upload-form');
+    const analyzeForm = document.getElementById('analyze-form');
     
-    if (uploadForm) {
-        const uploadButton = document.getElementById('upload-button');
-        const uploadStatus = document.getElementById('upload-status');
+    if (analyzeForm) {
+        const analyzeButton = document.getElementById('analyze-button');
+        const explanationContainer = document.getElementById('explanation-container');
+        const explanationBody = document.getElementById('explanation-body');
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-        uploadForm.addEventListener('submit', (e) => {
+        analyzeForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            uploadButton.disabled = true;
-            uploadButton.textContent = 'Uploading...';
-            uploadStatus.textContent = '';
+            analyzeButton.disabled = true;
+            analyzeButton.textContent = 'Analyzing...';
+            explanationContainer.classList.remove('hidden');
+            explanationBody.innerHTML = '<p class="text-center text-gray-500">Reading your document and asking the AI... Please wait.</p>';
 
-            const formData = new FormData(uploadForm);
+            const formData = new FormData(analyzeForm);
 
-            fetch('/api/upload-result/', {
+            fetch('/api/analyze-document/', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,
                 },
                 body: formData
             })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.message || 'Upload failed.') });
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                if (data.status === 'success') {
-                    uploadStatus.innerHTML = `<p class="text-green-600">${data.message}</p>`;
-                    setTimeout(() => window.location.reload(), 1500);
+                if (data.explanation) {
+                    // Using a <pre> tag helps preserve formatting from the AI response
+                    explanationBody.innerHTML = `<pre class="whitespace-pre-wrap font-sans text-gray-800">${data.explanation}</pre>`;
                 } else {
-                    throw new Error(data.message || 'An unknown error occurred.');
+                    throw new Error(data.error || 'An unknown error occurred.');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                uploadStatus.innerHTML = `<p class="text-red-600">${error.message}</p>`;
-                uploadButton.disabled = false;
-                uploadButton.textContent = 'Upload File';
+                explanationBody.innerHTML = `<p class="text-red-600">Sorry, an error occurred: ${error.message}</p>`;
+            })
+            .finally(() => {
+                // Re-enable the button after the process is complete
+                analyzeButton.disabled = false;
+                analyzeButton.textContent = 'Analyze Document';
             });
         });
     }

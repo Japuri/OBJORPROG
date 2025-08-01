@@ -1,6 +1,7 @@
 # myapp/main/views.py
 
-from django.shortcuts import render, redirect
+# myapp/main/views.py
+from django.shortcuts import render, redirect, get_object_or_404
 # --- Add these imports for the API ---
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -9,6 +10,9 @@ from django.contrib.auth.decorators import login_required
 import json
 from .models import LabResult  # <-- Import the new LabResult model
 from django.conf import settings
+import fitz  # PyMuPDF
+from django.conf import settings
+import requests
 
 import json
 # --- This safely imports the 'requests' library ---
@@ -81,7 +85,7 @@ Thank you for choosing HAUspital.
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)
 
 
-# --- ADD THIS NEW FUNCTION FOR FILE UPLOADS ---
+# --- ADD THIS TO THE TOP OF THE upload_lab_result FUNCTION ---
 @login_required
 def upload_lab_result(request):
     if request.method == 'POST':
@@ -89,6 +93,12 @@ def upload_lab_result(request):
             return JsonResponse({'status': 'error', 'message': 'No document was uploaded.'}, status=400)
 
         document = request.FILES['document']
+        
+        # --- ADD THIS VALIDATION BLOCK ---
+        if not document.name.lower().endswith('.pdf'):
+            return JsonResponse({'status': 'error', 'message': 'Error: PDF file uploads only.'}, status=400)
+        # --- END VALIDATION BLOCK ---
+
         description = request.POST.get('description', '')
 
         LabResult.objects.create(
@@ -100,6 +110,8 @@ def upload_lab_result(request):
         return JsonResponse({'status': 'success', 'message': 'File uploaded successfully!'})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)
+
+
 
 
 def home(request):
@@ -232,3 +244,113 @@ def ai_chat_api(request):
         # This will catch any other unexpected errors in the code
         return JsonResponse({'reply': f"An unexpected error occurred on the server: {str(e)}"}, status=500)
 
+
+@login_required
+def explain_lab_result_api(request, result_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
+    try:
+        # 1. Find the lab result and ensure it belongs to the current user
+        lab_result = get_object_or_404(LabResult, id=result_id, patient=request.user)
+        
+        # 2. Extract text from the PDF file
+        text_content = ""
+        with fitz.open(lab_result.document.path) as doc:
+            for page in doc:
+                text_content += page.get_text()
+
+        if not text_content.strip():
+            return JsonResponse({'explanation': "Could not find any text in this document. It might be an image-based PDF."})
+
+        # 3. Send the extracted text to the AI with a safe prompt
+        api_key = settings.GEMINI_API_KEY
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+
+        prompt = f"""
+        You are "HAUspital AI", a helpful medical terminology assistant. Your task is to analyze the text from a patient's lab result and provide a safe, simple explanation.
+
+        **CRITICAL SAFETY INSTRUCTIONS - FOLLOW THESE EXACTLY:**
+        1.  **SCAN THE TEXT:** Read through the provided lab result text and identify any tests where the value is explicitly marked as "High", "Low", "Abnormal", "H", or "L", or is otherwise flagged as outside the normal reference range.
+        2.  **EXPLAIN THE TEST :** For ONLY the tests you identified in step 1, provide a simple, one- or two-sentence explanation of what that test measures in a general sense. For example, if "Glucose" is high, explain what a glucose test is for.
+        3.  **DIAGNOSE OR INTERPRET:** You must say if a value is "good," "bad," "dangerous," or "borderline." Suggest a medical or natural practice to make the result better.
+        4.  **MANDATORY DISCLAIMER:** You MUST end your entire response with the following exact sentence, without any changes: "This is a simplified explanation and not a medical diagnosis. Please consult with your doctor to discuss your results in detail."
+        5.  **IF NO ABNORMAL VALUES:** If you scan the text and find no values marked as high or low, your ONLY response should be: "All values in this report appear to be within the standard reference ranges. Please consult with your doctor to discuss your results in detail."
+
+        Here is the text from the lab result:
+        ---
+        {text_content}
+        ---
+        """
+
+        payload = {"contents": [{"parts": [{"text": prompt}]}]}
+        response = requests.post(api_url, json=payload)
+        response.raise_for_status()
+        
+        result = response.json()
+        ai_explanation = result['candidates'][0]['content']['parts'][0]['text']
+
+        return JsonResponse({'explanation': ai_explanation.strip()})
+
+    except Exception as e:
+        return JsonResponse({'error': f"An error occurred: {str(e)}"}, status=500)
+    
+
+    # myapp/main/views.py
+
+# --- ADD THIS NEW VIEW AT THE BOTTOM ---
+@login_required
+def analyze_document_api(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
+    try:
+        if 'document' not in request.FILES:
+            return JsonResponse({'error': 'No document was uploaded.'}, status=400)
+
+        document = request.FILES['document']
+
+        if not document.name.lower().endswith('.pdf'):
+            return JsonResponse({'error': 'Error: PDF file uploads only.'}, status=400)
+
+        # 1. Read the file directly from memory without saving it
+        text_content = ""
+        with fitz.open(stream=document.read(), filetype="pdf") as doc:
+            for page in doc:
+                text_content += page.get_text()
+
+        if not text_content.strip():
+            return JsonResponse({'explanation': "Could not find any text in this document. It might be an image-based PDF."})
+
+        # 2. Send the extracted text to the AI with the safe prompt
+        api_key = settings.GEMINI_API_KEY
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+
+        prompt = f"""
+         You are "HAUspital AI", a helpful medical terminology assistant. Your task is to analyze the text from a patient's lab result and provide a safe, simple explanation.
+
+        **CRITICAL SAFETY INSTRUCTIONS - FOLLOW THESE EXACTLY:**
+        1.  **SCAN THE TEXT:** Read through the provided lab result text and identify any tests where the value is explicitly marked as "High", "Low", "Abnormal", "H", or "L", or is otherwise flagged as outside the normal reference range.
+        2.  **EXPLAIN THE TEST :** For ONLY the tests you identified in step 1, provide a simple, one- or two-sentence explanation of what that test measures in a general sense. For example, if "Glucose" is high, explain what a glucose test is for.
+        3.  **DIAGNOSE OR INTERPRET:** You must say if a value is "good," "bad," "dangerous," or "borderline." Suggest a medical or natural practice to make the result better.
+        4.  **MANDATORY DISCLAIMER:** You MUST end your entire response with the following exact sentence, without any changes: "This is a simplified explanation and not a medical diagnosis. Please consult with your doctor to discuss your results in detail."
+        5.  **IF NO ABNORMAL VALUES:** If you scan the text and find no values marked as high or low, your ONLY response should be: "All values in this report appear to be within the standard reference ranges. Please consult with your doctor to discuss your results in detail."
+
+        Here is the text from the lab result:
+        ---
+        {text_content}
+        ---
+        """
+
+        payload = {"contents": [{"parts": [{"text": prompt}]}]}
+        response = requests.post(api_url, json=payload)
+        response.raise_for_status()
+        
+        result = response.json()
+        ai_explanation = result['candidates'][0]['content']['parts'][0]['text']
+
+        # 3. Return the explanation. The file is never saved.
+        return JsonResponse({'explanation': ai_explanation.strip()})
+
+    except Exception as e:
+        return JsonResponse({'error': f"An error occurred: {str(e)}"}, status=500)
