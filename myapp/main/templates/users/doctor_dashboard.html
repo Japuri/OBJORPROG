@@ -1,0 +1,56 @@
+<!-- FILE: users/templates/users/doctor_dashboard.html -->
+
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Doctor Dashboard - HAUspital{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="bg-white p-8 rounded-2xl shadow-xl">
+        <h1 class="text-3xl font-bold text-gray-800">Doctor Dashboard</h1>
+        <p class="text-gray-600 mt-2">Welcome, Dr. {{ user.username }}.</p>
+
+        <!-- Display Messages -->
+        {% if messages %}
+            <div class="my-4">
+                {% for message in messages %}
+                    <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="mt-6 border-t pt-6">
+            <h2 class="text-xl font-semibold">Patient Lab Results Pending Review</h2>
+
+            <div class="mt-4 space-y-3">
+                {% for result in pending_results %}
+                    <div class="bg-gray-50 p-4 rounded-lg flex justify-between items-center border">
+                        <div>
+                            <p class="font-semibold text-gray-800">{{ result.description|default:result.document.name }}</p>
+                            <p class="text-sm text-gray-600">Patient: <span class="font-medium">{{ result.patient.username }}</span></p>
+                            <p class="text-sm text-gray-500">Uploaded on: {{ result.uploaded_at|date:"F d, Y" }}</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <a href="{{ result.document.url }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-semibold">View File</a>
+
+                            <form action="{% url 'update_lab_result_status' result.id %}" method="POST" class="flex items-center gap-2">
+                                {% csrf_token %}
+                                <select name="status" class="text-sm rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="Reviewed">Reviewed</option>
+                                    <option value="Action Required">Action Required</option>
+                                </select>
+                                <button type="submit" class="bg-green-500 text-white text-sm py-1 px-3 rounded-full hover:bg-green-600">Update</button>
+                            </form>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-gray-500">You have no pending lab results to review.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

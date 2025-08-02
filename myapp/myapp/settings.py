@@ -135,3 +135,15 @@ LOGIN_REDIRECT_URL = 'profile_dashboard' # We will define this URL name later
 
 # Where to redirect after a successful logout (e.g., back to the homepage)
 LOGOUT_REDIRECT_URL = 'home' # 'home' is the name of your main homepage URL
+
+
+# --- EMAIL CONFIGURATION ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'hauspitalscheduler@@gmail.com'  # <-- IMPORTANT: Your full Gmail address
+EMAIL_HOST_PASSWORD = 'rwcd ngvg rvko cyyc' # <-- IMPORTANT: Your 16-digit App Password
+
+
+GEMINI_API_KEY = 'AIzaSyCcLXR7cd6rO_FolZ89P5vcuwv5IBrfKuY'

@@ -1,4 +1,4 @@
-# mywebsite/users/urls.py
+# users/urls.py
 
 from django.urls import path
 from django.contrib.auth import views as auth_views # Import Django's built-in auth views
@@ -17,6 +17,38 @@ urlpatterns = [
     # User Profile Dashboard
     path('profile/', views.profile_dashboard, name='profile_dashboard'),
 
+    # --- ADD THESE NEW URLS FOR THE DASHBOARDS ---
+    path('dashboard/admin/', views.admin_dashboard_view, name='admin_dashboard'),
+    path('dashboard/doctor/', views.doctor_dashboard_view, name='doctor_dashboard'),
+
+    path('lab-result/<int:result_id>/update-status/', views.update_lab_result_status, name='update_lab_result_status'),
+
+    path('manage-patients/', views.manage_patients_view, name='manage_patients'),
+
+    path('admit-patient/<int:patient_id>/', views.admit_patient_view, name='admit_patient'),
+
+    path('delete-patient/<int:patient_id>/', views.delete_patient_view, name='delete_patient'),
+
+    path('current-admissions/', views.current_admissions_view, name='current_admissions'),
+
+    path('discharge-patient/<int:admission_id>/', views.discharge_patient_view, name='discharge_patient'),
+
+    path('discharge-patient/<int:admission_id>/', views.discharge_patient_view, name='discharge_patient'),
+
+    # users/urls.py
+    path('manage-doctors/', views.manage_doctors_view, name='manage_doctors'),
+
+    # --- ADD THIS NEW URL FOR THE TRANSFER ACTION ---
+    path('transfer-patient/<int:admission_id>/', views.transfer_patient_view, name='transfer_patient'),path('discharge-patient/<int:admission_id>/', views.discharge_patient_view, name='discharge_patient'),
+
+    # --- ADD THIS NEW URL FOR THE TRANSFER ACTION ---
+    path('transfer-patient/<int:admission_id>/', views.transfer_patient_view, name='transfer_patient'),
+
+    path('add-doctor/', views.add_doctor_view, name='add_doctor'),
+
+    path('edit-doctor/<int:doctor_id>/', views.edit_doctor_view, name='edit_doctor'),
+    path('delete-doctor/<int:doctor_id>/', views.delete_doctor_view, name='delete_doctor'),
+    # ---------------------------------------------
 
     # Django's built-in password reset views (optional, but good to have)
     # path('password_reset/', auth_views.PasswordResetView.as_view(template_name='users/password_reset.html'), name='password_reset'),
