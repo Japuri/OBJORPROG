@@ -44,6 +44,12 @@ def about_view(request):
     return render(request, 'main/about.html')
 
 
+import json
+from django.http import JsonResponse
+from django.core.mail import send_mail
+from django.contrib.auth.decorators import login_required
+
+
 @login_required
 def book_appointment_api(request):
     if request.method == 'POST':
@@ -51,13 +57,17 @@ def book_appointment_api(request):
             data = json.loads(request.body)
             hospital_name = data.get('hospitalName')
             doctor_name = data.get('doctorName')
+            room_number = data.get('roomNumber')  # ADDED: Get the room number
             appointment_date = data.get('date')
             appointment_time = data.get('time')
             patient = request.user
 
             # ... (Save to database logic would go here) ...
+            # You would also save the room_number to your model here
 
             subject = f'Your Appointment Confirmation at {hospital_name}'
+
+            # UPDATED: The email message now includes the room number
             message = f"""
 Dear {patient.username},
 
@@ -65,6 +75,7 @@ This email confirms your appointment at {hospital_name} with {doctor_name}.
 
 Date: {appointment_date}
 Time: {appointment_time}
+Room: {room_number}
 
 Thank you for choosing HAUspital.
             """
@@ -83,7 +94,6 @@ Thank you for choosing HAUspital.
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)
-
 
 # --- ADD THIS TO THE TOP OF THE upload_lab_result FUNCTION ---
 @login_required

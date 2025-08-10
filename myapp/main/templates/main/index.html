@@ -326,9 +326,30 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Step 2: Select Date & Time (Initially Hidden) -->
+
                     <div id="step2" class="step-container mt-8 hidden">
-                        <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 2: Select Date & Time</h2>
+    <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 2: Select a Room</h2>
+    <p class="mb-4 text-slate-300">Available rooms for <strong id="selectedDoctorNameForRoom" class="text-indigo-400"></strong>:</p>
+    <div id="room-list" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div class="room-card-dark text-white rounded-lg p-4 cursor-pointer">
+            <h3 class="font-bold text-lg">Room 101</h3>
+            <p class="text-sm text-slate-400">Consultation Room</p>
+        </div>
+        <div class="room-card-dark text-white rounded-lg p-4 cursor-pointer">
+            <h3 class="font-bold text-lg">Room 102</h3>
+            <p class="text-sm text-slate-400">Consultation Room</p>
+        </div>
+        <div class="room-card-dark text-white rounded-lg p-4 cursor-pointer">
+            <h3 class="font-bold text-lg">Room 205</h3>
+            <p class="text-sm text-slate-400">Examination Room</p>
+        </div>
+    </div>
+</div>
+
+
+                    <!-- Step 2: Select Date & Time (Initially Hidden) -->
+                  <div id="step3" class="step-container mt-8 hidden">
+                        <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 3: Select Date & Time</h2>
                         <p class="mb-4 text-slate-300">Available slots for <strong id="selectedDoctorName" class="text-indigo-400"></strong>:</p>
                         <input type="date" id="appointmentDate" class="dark-input w-full md:w-1/2 p-2 border rounded-lg shadow-sm mb-6">
                         <div id="time-slots" class="grid grid-cols-3 sm:grid-cols-4 gap-3">
@@ -340,17 +361,18 @@
                         </div>
                     </div>
                     <!-- Step 3: Confirmation (Initially Hidden) -->
-                    <div id="step3" class="step-container mt-8 hidden">
+                    <div id="step4" class="step-container mt-8 hidden">
                         <h2 class="text-2xl font-semibold text-slate-200 mb-4 border-b border-slate-600 pb-2">Step 3: Confirm Your Booking</h2>
                         <div class="bg-slate-700 p-6 rounded-lg">
-                            <h3 class="font-bold text-lg text-white mb-4">Appointment Details:</h3>
-                            <div class="space-y-2 text-slate-300">
-                                <p><span class="font-semibold text-slate-100">Patient:</span> {{ user.username }}</p>
-                                <p><span class="font-semibold text-slate-100">Doctor:</span> <span id="confirmDoctor"></span></p>
-                                <p><span class="font-semibold text-slate-100">Date:</span> <span id="confirmDate"></span></p>
-                                <p><span class="font-semibold text-slate-100">Time:</span> <span id="confirmTime"></span></p>
-                            </div>
-                        </div>
+    <h3 class="font-bold text-lg text-white mb-4">Appointment Details:</h3>
+    <div class="space-y-2 text-slate-300">
+        <p><span class="font-semibold text-slate-100">Patient:</span> {{ user.username }}</p>
+        <p><span class="font-semibold text-slate-100">Doctor:</span> <span id="confirmDoctor"></span></p>
+        <p><span class="font-semibold text-slate-100">Room:</span> <span id="confirmRoom"></span></p>
+        <p><span class="font-semibold text-slate-100">Date:</span> <span id="confirmDate"></span></p>
+        <p><span class="font-semibold text-slate-100">Time:</span> <span id="confirmTime"></span></p>
+    </div>
+</div>
                         <div class="mt-6 flex justify-between items-center">
                             <button id="backButton" class="text-slate-400 hover:text-white font-medium">Go Back</button>
                             <button id="confirmBookingButton" class="bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 shadow-md">Confirm Booking</button>
