@@ -109,156 +109,233 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- 2. APPOINTMENT BOOKING LOGIC ---
-    const initBooking = () => {
-        const step1 = document.getElementById('step1');
-        if (!step1) return;
+   const initBooking = () => {
+    // --- 1. Element Selection ---
+    const step1 = document.getElementById('step1');
+    if (!step1) return;
 
-        const bookingState = { hospitalName: null, doctorId: null, doctorName: null, date: null, time: null };
-        const step2 = document.getElementById('step2');
-        const step3 = document.getElementById('step3');
-        const specialtyFilter = document.getElementById('specialty');
-        const doctorCards = document.querySelectorAll('.doctor-card-dark');
-        const timeSlots = document.querySelectorAll('.time-slot-dark:not(.cursor-not-allowed)');
-        const datePicker = document.getElementById('appointmentDate');
-        const selectedDoctorNameEl = document.getElementById('selectedDoctorName');
-        const confirmDoctorEl = document.getElementById('confirmDoctor');
-        const confirmDateEl = document.getElementById('confirmDate');
-        const confirmTimeEl = document.getElementById('confirmTime');
-        const backButton = document.getElementById('backButton');
-        const confirmBookingButton = document.getElementById('confirmBookingButton');
-        const csrfToken = document.getElementById('csrf_token_input').value;
-        const bookingTitleEl = document.getElementById('booking-section-title');
-        const bookingSubtitle = document.getElementById('booking-subtitle');
-        const showAllDoctorsBtn = document.getElementById('show-all-doctors');
+    // UPDATED: Select all four step containers
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    const step4 = document.getElementById('step4'); // ADDED
 
-        // --- NEW: Add specialty text dynamically ---
+    // Your existing element selections
+    const specialtyFilter = document.getElementById('specialty');
+    const doctorCards = document.querySelectorAll('.doctor-card-dark');
+    const roomCards = document.querySelectorAll('.room-card-dark'); // ADDED
+    const timeSlots = document.querySelectorAll('.time-slot-dark:not(.cursor-not-allowed)');
+    const datePicker = document.getElementById('appointmentDate');
+    const backButton = document.getElementById('backButton');
+    const confirmBookingButton = document.getElementById('confirmBookingButton');
+    const csrfToken = document.getElementById('csrf_token_input').value;
+
+    // Your UI display elements
+    const selectedDoctorNameEl = document.getElementById('selectedDoctorName');
+    const selectedDoctorNameForRoomEl = document.getElementById('selectedDoctorNameForRoom'); // ADDED
+    const confirmDoctorEl = document.getElementById('confirmDoctor');
+    const confirmRoomEl = document.getElementById('confirmRoom'); // ADDED
+    const confirmDateEl = document.getElementById('confirmDate');
+    const confirmTimeEl = document.getElementById('confirmTime');
+    const bookingTitleEl = document.getElementById('booking-section-title');
+    const bookingSubtitle = document.getElementById('booking-subtitle');
+    const showAllDoctorsBtn = document.getElementById('show-all-doctors');
+
+    // --- 2. State Management ---
+    // UPDATED: Added 'roomNumber' to the state
+    const bookingState = {
+        hospitalName: null,
+        doctorId: null,
+        doctorName: null,
+        roomNumber: null,
+        date: null,
+        time: null
+    };
+
+    // --- 3. Your Existing Filter and Display Logic (Unchanged) ---
+    doctorCards.forEach(card => {
+        const specialty = card.dataset.specialty;
+        const specialtyEl = document.createElement('p');
+        specialtyEl.className = 'text-indigo-400 doctor-specialty-display';
+        specialtyEl.textContent = specialty.charAt(0).toUpperCase() + specialty.slice(1);
+        card.appendChild(specialtyEl);
+    });
+
+    const filterDoctors = (hospitalName) => {
+        // This function remains exactly as you wrote it
+        bookingState.hospitalName = hospitalName;
+        bookingTitleEl.textContent = `Book at ${hospitalName}`;
+        bookingSubtitle.textContent = `Showing doctors for ${hospitalName}.`;
+        showAllDoctorsBtn.classList.remove('hidden');
+        let visibleDoctors = 0;
         doctorCards.forEach(card => {
-            const specialty = card.dataset.specialty;
-            const specialtyEl = document.createElement('p');
-            specialtyEl.className = 'text-indigo-400 doctor-specialty-display';
-            specialtyEl.textContent = specialty.charAt(0).toUpperCase() + specialty.slice(1);
-            card.appendChild(specialtyEl);
-        });
-        // --- END NEW ---
-
-        const filterDoctors = (hospitalName) => {
-            bookingState.hospitalName = hospitalName;
-            bookingTitleEl.textContent = `Book at ${hospitalName}`;
-            bookingSubtitle.textContent = `Showing doctors for ${hospitalName}.`;
-            showAllDoctorsBtn.classList.remove('hidden');
-            let visibleDoctors = 0;
-
-            doctorCards.forEach(card => {
-                if (card.dataset.hospitalName === hospitalName) {
-                    card.style.display = 'block';
-                    visibleDoctors++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            if (visibleDoctors === 0) {
-                bookingSubtitle.innerHTML = `No doctors found for ${hospitalName}. <span class="text-amber-400">Showing all doctors instead.</span>`;
-                showAllDoctors();
-            }
-        };
-
-        window.filterDoctorsByHospital = filterDoctors;
-
-        const showAllDoctors = () => {
-            doctorCards.forEach(card => {
+            if (card.dataset.hospitalName === hospitalName) {
                 card.style.display = 'block';
-                const specialtyEl = card.querySelector('.doctor-specialty-display');
-                if (specialtyEl) specialtyEl.style.display = 'block'; // Ensure it's visible
-            });
-            bookingTitleEl.textContent = 'Book an Appointment';
-            bookingSubtitle.textContent = 'Select a hospital from the map above or choose from the doctors below.';
-            showAllDoctorsBtn.classList.add('hidden');
-            specialtyFilter.value = 'all';
-            bookingState.hospitalName = null;
-        };
-
-        showAllDoctorsBtn.addEventListener('click', showAllDoctors);
-
-        // --- UPDATED: Specialty filter logic ---
-        specialtyFilter.addEventListener('change', (e) => {
-            const selectedSpecialty = e.target.value;
-            doctorCards.forEach(card => {
-                const specialtyEl = card.querySelector('.doctor-specialty-display');
-
-                // Logic to show/hide the whole card
-                if (selectedSpecialty === 'all' || card.dataset.specialty === selectedSpecialty) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-
-                // Logic to show/hide the specialty text inside the card
-                if (specialtyEl) {
-                    if (selectedSpecialty === 'all') {
-                        specialtyEl.style.display = 'block';
-                    } else {
-                        specialtyEl.style.display = 'none';
-                    }
-                }
-            });
+                visibleDoctors++;
+            } else {
+                card.style.display = 'none';
+            }
         });
-        // --- END UPDATE ---
+        if (visibleDoctors === 0) {
+            bookingSubtitle.innerHTML = `No doctors found for ${hospitalName}. <span class="text-amber-400">Showing all doctors instead.</span>`;
+            showAllDoctors();
+        }
+    };
+    window.filterDoctorsByHospital = filterDoctors;
 
+    const showAllDoctors = () => {
+        // This function remains exactly as you wrote it
         doctorCards.forEach(card => {
-            card.addEventListener('click', () => {
-                bookingState.hospitalName = card.dataset.hospitalName;
-                bookingState.doctorId = card.dataset.doctorId;
-                bookingState.doctorName = card.dataset.doctorName;
-
-                doctorCards.forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
-                selectedDoctorNameEl.textContent = bookingState.doctorName;
-
-                step1.style.opacity = '0.5';
-                step2.classList.remove('hidden');
-                step3.classList.add('hidden');
-            });
+            card.style.display = 'block';
+            const specialtyEl = card.querySelector('.doctor-specialty-display');
+            if (specialtyEl) specialtyEl.style.display = 'block';
         });
+        bookingTitleEl.textContent = 'Book an Appointment';
+        bookingSubtitle.textContent = 'Select a hospital from the map above or choose from the doctors below.';
+        showAllDoctorsBtn.classList.add('hidden');
+        specialtyFilter.value = 'all';
+        bookingState.hospitalName = null;
+    };
+    showAllDoctorsBtn.addEventListener('click', showAllDoctors);
 
-        timeSlots.forEach(slot => {
-            slot.addEventListener('click', () => {
-                if (!datePicker.value) { alert('Please select a date first.'); return; }
-                bookingState.date = datePicker.value;
-                bookingState.time = slot.textContent;
-                timeSlots.forEach(s => s.classList.remove('selected'));
-                slot.classList.add('selected');
-                confirmDoctorEl.textContent = bookingState.doctorName;
-                confirmDateEl.textContent = new Date(bookingState.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                confirmTimeEl.textContent = bookingState.time;
-                step2.style.opacity = '0.5';
-                step3.classList.remove('hidden');
-            });
+    specialtyFilter.addEventListener('change', (e) => {
+        // This function remains exactly as you wrote it
+        const selectedSpecialty = e.target.value;
+        doctorCards.forEach(card => {
+            const specialtyEl = card.querySelector('.doctor-specialty-display');
+            if (selectedSpecialty === 'all' || card.dataset.specialty === selectedSpecialty) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+            if (specialtyEl) {
+                if (selectedSpecialty === 'all') {
+                    specialtyEl.style.display = 'block';
+                } else {
+                    specialtyEl.style.display = 'none';
+                }
+            }
         });
+    });
 
-        backButton.addEventListener('click', () => {
+    // --- 4. Core Booking Flow Logic (Updated for New Steps) ---
+
+    // UPDATED: Doctor click now shows Step 2 (Rooms)
+    doctorCards.forEach(card => {
+        card.addEventListener('click', () => {
+            bookingState.hospitalName = card.dataset.hospitalName;
+            bookingState.doctorId = card.dataset.doctorId;
+            bookingState.doctorName = card.dataset.doctorName;
+
+            doctorCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+
+            selectedDoctorNameEl.textContent = bookingState.doctorName;
+            selectedDoctorNameForRoomEl.textContent = bookingState.doctorName; // ADDED
+
+            step1.style.opacity = '0.5';
+            step2.classList.remove('hidden');
+            step3.classList.add('hidden');
+            step4.classList.add('hidden'); // ADDED
+        });
+    });
+
+  // ADDED: New listener for Room selection
+roomCards.forEach(card => {
+    card.addEventListener('click', () => {
+        // Save the room number from the card's h3 tag
+        bookingState.roomNumber = card.querySelector('h3').textContent.trim();
+
+        // Visually select the card
+        roomCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+
+        // --- FLOW CONTROL ---
+        // This is the crucial part: it hides other steps and shows step3
+        step2.style.opacity = '0.5';
+        step3.classList.remove('hidden'); // Reveals Date & Time
+        step4.classList.add('hidden');    // Ensures Confirmation is hidden
+    });
+});
+
+    // UPDATED: Time slot click now populates room and shows Step 4 (Confirmation)
+    timeSlots.forEach(slot => {
+    slot.addEventListener('click', () => {
+        console.log("✅ 1. Time slot clicked!");
+
+        const datePicker = document.getElementById('appointmentDate');
+        if (!datePicker.value) {
+            console.error("❌ 2. FAILED: Date picker is empty.");
+            alert('Please select a date first.');
+            return;
+        }
+
+        console.log("✅ 2. SUCCESS: Date is selected. Value: " + datePicker.value);
+
+        // Save state
+        bookingState.date = datePicker.value;
+        bookingState.time = slot.textContent.trim();
+        timeSlots.forEach(s => s.classList.remove('selected'));
+        slot.classList.add('selected');
+
+        console.log("✅ 3. State updated. Current booking:", bookingState);
+
+        // Populate confirmation details
+        document.getElementById('confirmDoctor').textContent = bookingState.doctorName;
+        document.getElementById('confirmRoom').textContent = bookingState.roomNumber;
+        document.getElementById('confirmDate').textContent = new Date(bookingState.date).toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        document.getElementById('confirmTime').textContent = bookingState.time;
+
+        console.log("✅ 4. Confirmation details populated.");
+
+        // Show the next step
+        step3.style.opacity = '0.5';
+        step4.classList.remove('hidden');
+
+        console.log("✅ 5. FINAL STEP: Confirmation screen should be visible now.");
+    });
+});
+
+    // UPDATED: Back button now handles all steps
+    backButton.addEventListener('click', () => {
+        if (!step4.classList.contains('hidden')) {
+            step4.classList.add('hidden');
+            step3.style.opacity = '1';
+        } else if (!step3.classList.contains('hidden')) {
             step3.classList.add('hidden');
             step2.style.opacity = '1';
-        });
+        } else if (!step2.classList.contains('hidden')) {
+            step2.classList.add('hidden');
+            step1.style.opacity = '1';
+        }
+    });
 
-        confirmBookingButton.addEventListener('click', () => {
-            if (!bookingState.doctorId) {
-                alert('Please select a doctor first.');
-                return;
-            }
-            confirmBookingButton.disabled = true;
-            confirmBookingButton.textContent = 'Booking...';
+    // Your existing confirmation logic is fine, it will now send the 'roomNumber'
+    // because it's part of the 'bookingState' object.
+    confirmBookingButton.addEventListener('click', () => {
+        if (!bookingState.doctorId) {
+            alert('Please select a doctor first.');
+            return;
+        }
+        confirmBookingButton.disabled = true;
+        confirmBookingButton.textContent = 'Booking...';
 
-            fetch('/api/book-appointment/', {
+        fetch('/api/book-appointment/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken
                 },
-                body: JSON.stringify(bookingState)
+                body: JSON.stringify(bookingState) // This now includes the room number
             })
             .then(response => {
-                if (response.ok) { return response.json(); }
+                if (response.ok) {
+                    return response.json();
+                }
                 throw new Error('Server responded with an error.');
             })
             .then(data => {
@@ -271,8 +348,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 confirmBookingButton.disabled = false;
                 confirmBookingButton.textContent = 'Confirm Booking';
             });
-        });
-    };
+    });
+};
+
+// Make sure to wrap the call in a DOMContentLoaded listener
+document.addEventListener('DOMContentLoaded', initBooking);
 
     // Initialize both features safely
     try {
