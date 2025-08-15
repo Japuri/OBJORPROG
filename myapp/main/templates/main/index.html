@@ -8,12 +8,17 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
     <!-- Leaflet.js for the Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhfR+UXS7IVjUGVsAA+x9saKkHQ+3yL1okNs="
-        crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossorigin=""></script>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin="">
+</script>
 
     <!-- Styles for the AI Chat Assistant -->
     <style>
@@ -464,11 +469,11 @@
             content: '';
             position: absolute;
             top: 50%;
-            right: -10px; /* Positioned on the right edge */
+            right: -10px;
             transform: translateY(-50%);
-            border-width: 10px 0 10px 10px; /* Corrected border trick for a right-pointing triangle */
+            border-width: 10px 0 10px 10px;
             border-style: solid;
-            border-color: transparent transparent transparent #0891b2; /* Color points left into the tail */
+            border-color: transparent transparent transparent #0891b2;
         }
 
         #ai-chat-bubble {
@@ -515,6 +520,9 @@
             }
         });
     </script>
+
+
+
 {% endif %}
 
 
