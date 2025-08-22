@@ -3,6 +3,8 @@
 import os
 from pathlib import Path
 
+from django.contrib import staticfiles
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -114,6 +116,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 # AWS S3 STATIC FILES CONFIGURATION
 # This block checks if the app is on Heroku by looking for a specific environment variable.
 if 'DATABASE_URL' in os.environ:
@@ -136,7 +140,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'main/static'), # Points to the 'static' folder in your 'main' app
 ]
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
