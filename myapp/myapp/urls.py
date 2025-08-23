@@ -5,7 +5,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('users.urls')),
     path('', include('myapp.urls')),# <--- Include your users app URLs here
     # You can also include Django's default auth URLs if you prefer, but we're customizing
     # path('accounts/', include('django.contrib.auth.urls')),
