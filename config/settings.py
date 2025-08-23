@@ -138,7 +138,7 @@ if 'DATABASE_URL' in os.environ:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'main/../myapp/main/static'), # Points to the 'static' folder in your 'main' app
+    os.path.join(BASE_DIR, 'myapp/main/static'), # Points to the 'static' folder in your 'main' app
 ]
 
 
