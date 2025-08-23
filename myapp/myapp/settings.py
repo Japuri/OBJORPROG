@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Add message tags to ensure Django messages are styled correctly
     'django.contrib.messages.middleware.MessageMiddleware',
+"whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = 'myapp.urls'
