@@ -18,7 +18,7 @@ SECRET_KEY = 'django-insecure-sd=2w1(0czc9e6wyjp(v@dhcpk6473ipsy2n84w4tq6d3)5r%^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['hauspital-booking-system-bd7df761bf63.herokuapp.com', '127.0.0.1', 'localhost']
 
 
 # Application definition
