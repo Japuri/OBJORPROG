@@ -18,7 +18,7 @@ SECRET_KEY = 'django-insecure-sd=2w1(0czc9e6wyjp(v@dhcpk6473ipsy2n84w4tq6d3)5r%^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['hauspital-booking-system-bd7df761bf63.herokuapp.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'myapp',
+    'main',
+    'users',
     'crispy_forms',
     'crispy_tailwind',
 ]
@@ -136,7 +138,7 @@ if 'DATABASE_URL' in os.environ:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'main/static'), # Points to the 'static' folder in your 'main' app
+    os.path.join(BASE_DIR, 'main/../myapp/main/static'), # Points to the 'static' folder in your 'main' app
 ]
 
 
