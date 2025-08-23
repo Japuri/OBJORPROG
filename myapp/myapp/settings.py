@@ -121,6 +121,8 @@ STATIC_URL = 'static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # AWS S3 STATIC FILES CONFIGURATION
 # This block checks if the app is on Heroku by looking for a specific environment variable.
 if 'DATABASE_URL' in os.environ:
