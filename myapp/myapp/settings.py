@@ -18,11 +18,8 @@ SECRET_KEY = 'django-insecure-sd=2w1(0czc9e6wyjp(v@dhcpk6473ipsy2n84w4tq6d3)5r%^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False   # when deploying
 
-ALLOWED_HOSTS = [
-    "localhost",        # for local testing
-    "127.0.0.1",        # for local testing
-    "https://git.heroku.com/hauspital-booking-system.git",  # replace with your Heroku app URL
-]
+ALLOWED_HOSTS = ["*"]
+
 
 
 # Application definition
