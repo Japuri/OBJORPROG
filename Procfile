@@ -1,1 +1,1 @@
-web: gunicorn hauspital.wsgi
+web: gunicorn myapp.wsgi

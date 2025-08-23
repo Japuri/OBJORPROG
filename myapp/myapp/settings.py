@@ -5,8 +5,6 @@ from pathlib import Path
 
 from django.contrib import staticfiles
 
-from myapp import users
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -33,6 +31,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'myapp',
+    'main',
+    'users',
     'crispy_forms',
     'crispy_tailwind',
 ]
@@ -49,7 +49,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
-ROOT_URLCONF = 'hauspital.urls'
+ROOT_URLCONF = 'myapp.urls'
 
 TEMPLATES = [
     {
@@ -67,7 +67,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'hauspital.wsgi.application'
+WSGI_APPLICATION = 'myapp.wsgi.application'
 
 
 # Database
@@ -138,7 +138,7 @@ if 'DATABASE_URL' in os.environ:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'main/../myapp/main/static'), # Points to the 'static' folder in your 'main' app
+    os.path.join(BASE_DIR, 'main/static'), # Points to the 'static' folder in your 'main' app
 ]
 
 
