@@ -5,6 +5,8 @@ from pathlib import Path
 
 from django.contrib import staticfiles
 
+from myapp import users
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,8 +33,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'myapp',
-    'main',
-    'users',
     'crispy_forms',
     'crispy_tailwind',
 ]
